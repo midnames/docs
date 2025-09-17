@@ -1,0 +1,47 @@
+---
+title: MNS Specification
+sidebar:
+  label: Specification
+---
+
+All valid domain part names must adhere to the following regular expression:
+
+```regexp
+ /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
+```
+
+# Valid domains
+
+- `domain.night`
+- `my-domain.night`
+- `mydomain123.night`
+- `123domain.night`
+- `a.night`
+- `abc.night`
+- `sub123.domain.night`
+- `123sub.domain.night`
+- `s.domain.night`
+- `sub1.domain.night`
+- `s1d2.night`
+- `s-d.night`
+- `s-u-b.domain.night`
+
+# Invalid domains
+
+- `-domain.night` (cannot start with a hyphen)
+- `domain-.night` (cannot end with a hyphen)
+- `my_domain.night` (cannot contain underscores or special characters)
+- `my.domain.night` (cannot contain multiple parts separated by dots)
+- `my..domain.night` (cannot contain consecutive dots)
+- `.night` (cannot be empty)
+- `domain` (must end with `.night`)
+- `do main.night` (cannot contain spaces)
+- `do\tmain.night` (cannot contain tabs or other whitespace characters)
+- `sub-.domain.night` (cannot end with a hyphen)
+- `my_sub.domain.night` (cannot contain underscores or special characters)
+- `my..sub.domain.night` (cannot contain consecutive dots)
+- `sub..domain.night` (cannot contain consecutive dots)
+
+# Caveats
+
+All domain parts are valid in the contracts but the frontend (and more importantly the SDK for wallet integration) will restrict the user to only create and resolve domains that follow the above specification.

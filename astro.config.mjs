@@ -1,8 +1,10 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import catppuccin from "@catppuccin/starlight";
 
 export default defineConfig({
+  site: "https://docs.midnames.com",
   integrations: [
     starlight({
       title: "Midnames",
@@ -17,13 +19,29 @@ export default defineConfig({
         {
           label: "Guides",
           items: [
-            { label: "Example Guide", slug: "guides/example" },
+            { label: "Index", slug: "guides/example" },
+            { label: "Buy a .night domain", slug: "guides/buy_domain" },
+            {
+              label: "Transfer a .night domain",
+              slug: "guides/transfer_domain",
+            },
+            {
+              label: "Update fields in a domain",
+              slug: "guides/update_fields",
+            },
+            { label: "MNS Specification", slug: "guides/valid_domains" },
           ],
         },
         {
-          label: "Reference",
+          label: "SDK Reference",
           autogenerate: { directory: "reference" },
         },
+      ],
+      plugins: [
+        catppuccin({
+          dark: { flavor: "mocha", accent: "green" },
+          light: { flavor: "latte", accent: "green" },
+        }),
       ],
     }),
   ],
