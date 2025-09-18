@@ -2,12 +2,18 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import catppuccin from "@catppuccin/starlight";
+import starlightContextualMenu from "starlight-contextual-menu";
+import starlightLinksValidator from "starlight-links-validator";
+import starlightHeadingBadges from "starlight-heading-badges";
 
 export default defineConfig({
   site: "https://docs.midnames.com",
   integrations: [
     starlight({
       title: "Midnames",
+      components: {
+        Pagination: "./src/components/CustomPagination.astro",
+      },
       social: [
         {
           icon: "github",
@@ -40,6 +46,11 @@ export default defineConfig({
         catppuccin({
           dark: { flavor: "mocha", accent: "green" },
           light: { flavor: "latte", accent: "green" },
+        }),
+        starlightLinksValidator(),
+        starlightHeadingBadges(),
+        starlightContextualMenu({
+          actions: ["copy", "view", "chatgpt", "claude"],
         }),
       ],
     }),
