@@ -7,10 +7,32 @@ hero:
   image:
     file: ../../assets/houston.webp
   actions:
-    - text: Let's go!
-      link: /guides/example/
+    - text: Read the docs
+      link: /guides/buy_domain/
       icon: right-arrow
 ---
 
-import { Card, CardGrid } from "@astrojs/starlight/components";
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
+<CardGrid>
+  <LinkCard
+    title="Buy a .night domain"
+    description="Get your own .night domain to represent your identity on the Midnight Network."
+    href="/guides/buy_domain/"
+  />
+  <LinkCard
+    title="Transfer a .night domain"
+    description="Easily transfer your .night domain to another user on the Midnight Network."
+    href="/guides/transfer_domain/"
+  />
+  <LinkCard
+    title="Update fields in a domain"
+    description="Learn how to update the fields associated with your .night domain."
+    href="/guides/update_fields/"
+  />
+  <LinkCard
+    title="MNS Specification"
+    description="Understand the rules and specifications for valid .night domains."
+    href="/guides/valid_domains/"
+  ></LinkCard>
+</CardGrid>

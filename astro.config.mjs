@@ -19,7 +19,6 @@ export default defineConfig({
         {
           label: "Guides",
           items: [
-            { label: "Index", slug: "guides/example" },
             { label: "Buy a .night domain", slug: "guides/buy_domain" },
             {
               label: "Transfer a .night domain",

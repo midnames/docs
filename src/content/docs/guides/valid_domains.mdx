@@ -31,16 +31,13 @@ All valid domain part names must adhere to the following regular expression:
 - `-domain.night` (cannot start with a hyphen)
 - `domain-.night` (cannot end with a hyphen)
 - `my_domain.night` (cannot contain underscores or special characters)
-- `my.domain.night` (cannot contain multiple parts separated by dots)
 - `my..domain.night` (cannot contain consecutive dots)
 - `.night` (cannot be empty)
 - `domain` (must end with `.night`)
 - `do main.night` (cannot contain spaces)
 - `do\tmain.night` (cannot contain tabs or other whitespace characters)
 - `sub-.domain.night` (cannot end with a hyphen)
-- `my_sub.domain.night` (cannot contain underscores or special characters)
 - `my..sub.domain.night` (cannot contain consecutive dots)
-- `sub..domain.night` (cannot contain consecutive dots)
 
 # Caveats
 
