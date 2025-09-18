@@ -1,18 +1,13 @@
 ---
-import FeelbackTaggedMessage from "astro-feelback/components/FeelbackTaggedMessage.astro";
+import FeelbackYesNo from "astro-feelback/components/FeelbackYesNo.astro";
 import "astro-feelback/styles/feelback.css";
 
 const CONTENT_SET_ID = "43bad53f-88c6-4dcb-a7c8-2cde8d9caa10";
 ---
 
-<FeelbackTaggedMessage
-    contentSetId={CONTENT_SET_ID}
-    preset="like-dislike"
-    title="Was this page useful?"
-    layout="reveal-message"
-    placeholder="Type your message (optional)"
-    style={["bordered", "align-center"]}
-/>
+    <FeelbackYesNo contentSetId={CONTENT_SET_ID}
+      preset="like-dislike"
+    />
 
 <style is:global>
     .feelback-container {
