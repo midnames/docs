@@ -25,18 +25,7 @@ export default defineConfig({
       sidebar: [
         {
           label: "Guides",
-          items: [
-            { label: "Buy a .night domain", slug: "guides/buy_domain" },
-            {
-              label: "Transfer a .night domain",
-              slug: "guides/transfer_domain",
-            },
-            {
-              label: "Update fields in a domain",
-              slug: "guides/update_fields",
-            },
-            { label: "MNS Specification", slug: "guides/valid_domains" },
-          ],
+          autogenerate: { directory: "guides" },
         },
         {
           label: "SDK Reference",
