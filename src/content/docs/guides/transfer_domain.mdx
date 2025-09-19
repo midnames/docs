@@ -18,7 +18,7 @@ Learn how to safely transfer your .night domain to another user on the Midnight 
 
 Ensure you have:
 
-- <a href="https://docs.midnight.network/develop/tutorial/using/chrome-ext" target="_blank">Lace Wallet for Midnight </a> installed
+- <a href="https://docs.midnight.network/develop/tutorial/using/chrome-ext" target="_blank">Lace Wallet for Midnight</a> installed
 - The wallet address of the recipient
 
 ## Transfer Process
@@ -27,11 +27,11 @@ Ensure you have:
 
 1. **Verify domain ownership**
 
-   Midnames Nameservice verifies the ownership of the domain with your current wallet address. Once it is verified, the user is allowed to transfer ownership to another address.
+   Midnames Nameservice verifies the ownership of the domain with your current wallet address. Once it is verified, you'll be allowed to transfer ownership to another address.
 
    ![Domain ownership verification](../../../assets/domain_transfer/transfer-ownership.png)
 
-   **Look for**: Your wallet address or EPK displayed as the current owner. If no `EPK` field is set, by default the field shows the `CPK`.
+   **Look for**: Your wallet address or CoinPublicKey displayed as the current owner. If no `epk` field is set, by default the field shows the `cpk`.
 
 2. **Access domain settings**
 
@@ -57,12 +57,14 @@ Ensure you have:
 
 5. **Complete the transaction**
 
-    After clicking **Transfer Domain**, the user will be requested to sign the transaction using his Lace Wallet. 
+    After clicking **Transfer Domain**, you'll be requested to sign the transaction using your Lace Wallet. 
    <Aside type="note" title="Important: Two signatures required">
-   **You will see TWO separate Chrome popup tabs** that require your signature to complete the transfer. Both must be signed for the transaction to succeed. See the popup example below.
+   **You will see TWO consequent wallet popups** that require your signature to complete the transfer. Both must be signed for the transaction to succeed. See the popup example below.
    </Aside>
-   - Sign the transaction in your Lace Wallet
-   - Wait for blockchain confirmation
+   - Sign the transaction with your Lace Wallet
+   - Wait for confirmation
+   - Sign the second one
+   - Wait for confirmation again
    - You'll see a success message when the transfer is complete
 
     ![Domain transfer confirmation pop-up](../../../assets/domain_transfer/domain-transfer-popup.png)
@@ -78,5 +80,4 @@ Ensure you have:
 
 **Need to cancel?**
 
-- Transfers can only be cancelled before signing the transaction
-- Once signed and confirmed, the transfer is permanent
+- Transfers cannot be cancelled once executed. After signing the transaction, the transfer is permanent.
