@@ -14,6 +14,7 @@ export default defineConfig({
       components: {
         Pagination: "./src/components/CustomPagination.astro",
       },
+      routeMiddleware: "./src/routeData.ts",
       social: [
         {
           icon: "github",
