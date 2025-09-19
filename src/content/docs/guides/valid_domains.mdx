@@ -5,14 +5,40 @@ sidebar:
   label: MNS Specification
 ---
 
-All valid domain part names must adhere to the following regular expression:
+# Guidelines
+## Valid domains
+Every section of the domain must comply with the following regular expression.
 
 ```regexp
  /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/
 ```
 
-# Valid domains
+## Case Sensitivity
 
+All domains are enforced to be lowercase. Uppercase input is automatically converted by the frontend to lowercase:
+- Input: `Domain.night` → Processed as: `domain.night`
+- Input: `MY-SUB.domain.night` → Processed as: `my-sub.domain.night`
+
+If the user inputs an uppercase domain into the SDK, it will return an error as a response due to the domain not adhering to the expected regex.
+
+## Domain Restrictions
+
+The current implementation enforces the following restrictions on subdomains:
+* No practical limits on subdomain depth, the set of all possible subdomains a domain can have.
+* No practical limits on domain width, the set of all possible generated domains.
+* No practical limits on the length each domain or subdomain can have.
+* Example: `a.b.c.d.e.f.g.h.i.j.night` is a valid domain according to the rules.
+* Example: `a.night`, `b.night`, `c.night`, ..., `z.night`, `aa.night`, ... are all valid domains in the width of the domain set.
+
+## Reserved Domains
+The following domains are all reserved and cannot be registered:
+* `foo.night`
+* `bar.night`
+* `turing.night`
+* `ada.night`
+
+
+# Valid domains
 - `domain.night`
 - `my-domain.night`
 - `mydomain123.night`
