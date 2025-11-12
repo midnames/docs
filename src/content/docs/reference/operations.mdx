@@ -1,0 +1,540 @@
+---
+title: Domain Operations
+description: Write operations for managing .night domains
+sidebar:
+  label: Domain Operations
+---
+
+import { Aside, Code } from "@astrojs/starlight/components";
+
+Learn how to perform write operations on `.night` domains, including field management, transfers, and subdomain registration. These operations require a connected wallet with the Midnight SDK.
+
+<Aside type="caution">
+  Write operations require: - A connected wallet (via Lace or similar) -
+  Sufficient funds for transaction fees - The appropriate permissions (domain
+  owner or parent domain owner)
+</Aside>
+
+## Overview
+
+The SDK provides these write operations:
+
+**Field Management:**
+
+- `insertField()` - Add or update a single field
+- `clearField()` - Remove a specific field
+- `clearAllFields()` - Remove all fields
+- `addMultipleFields()` - Add up to 10 fields at once
+
+**Domain Management:**
+
+- `updateDomainTarget()` - Change where the domain resolves to
+- `changeDomainOwner()` - Transfer ownership (executed on domain contract)
+- `transferDomainOwnership()` - Transfer ownership (executed on parent contract)
+
+**Subdomain Operations:**
+
+- `registerDomainFor()` - Register a subdomain (free for parent owner)
+- `buyDomainFor()` - Purchase a subdomain (requires payment)
+
+**Settings:**
+
+- `updateDomainCost()` - Change subdomain pricing
+- `updateDomainColor()` - Change accepted token type
+- `setDomainResolver()` - Update resolver contract
+
+## Prerequisites
+
+### Setup Wallet Providers
+
+All write operations require `ContractProviders` which include your wallet connection:
+
+```typescript
+import { type ContractProviders } from "@midnight-ntwrk/midnight-js-contracts";
+import { leafContractInstance } from "@midnames/sdk";
+
+// Your wallet setup (example using Midnight wallet API)
+const providers: ContractProviders<typeof leafContractInstance> = {
+  privateStateProvider: myPrivateStateProvider,
+  publicDataProvider: myPublicDataProvider,
+  walletProvider: myWalletProvider,
+  zkConfigProvider: myZkConfigProvider,
+};
+```
+
+<Aside type="note">
+  The exact wallet setup depends on your application architecture. Refer to the{" "}
+  <a href="https://docs.midnight.network" target="_blank">
+    Midnight Network documentation
+  </a>{" "}
+  for wallet integration details.
+</Aside>
+
+## Field Management
+
+### Insert or Update a Field
+
+Add or update a single field in your domain:
+
+```typescript
+import { insertField } from "@midnames/sdk";
+
+const result = await insertField(
+  "alice.night", // Your domain
+  "twitter", // Field key
+  "@alice", // Field value
+  providers // Wallet providers
+);
+
+if (result.success) {
+  console.log("Transaction ID:", result.data.transactionId);
+} else {
+  console.error("Failed:", result.error.message);
+}
+```
+
+**Common use cases:**
+
+```typescript
+// Update profile information
+await insertField("alice.night", "name", "Alice Cooper", providers);
+await insertField("alice.night", "bio", "Web3 developer", providers);
+await insertField(
+  "alice.night",
+  "avatar",
+  "https://example.com/avatar.png",
+  providers
+);
+
+// Add social links
+await insertField("alice.night", "twitter", "@alice", providers);
+await insertField("alice.night", "github", "alice", providers);
+await insertField("alice.night", "website", "https://alice.dev", providers);
+
+// Set encryption key for shielded addresses
+await insertField("alice.night", "epk", "mn_shield-epk_test1...", providers);
+```
+
+### Add Multiple Fields at Once
+
+Add up to 10 fields in a single transaction (more efficient than multiple `insertField` calls):
+
+```typescript
+import { addMultipleFields } from "@midnames/sdk";
+
+const fields: Array<[string, string]> = [
+  ["name", "Alice Cooper"],
+  ["bio", "Web3 developer & educator"],
+  ["avatar", "https://example.com/avatar.png"],
+  ["twitter", "@alice"],
+  ["github", "alice"],
+  ["website", "https://alice.dev"],
+];
+
+const result = await addMultipleFields("alice.night", fields, providers);
+
+if (result.success) {
+  console.log("All fields added!", result.data.transactionId);
+}
+```
+
+<Aside type="tip">
+  `addMultipleFields()` is more gas-efficient than calling `insertField()`
+  multiple times. Use it when setting up a new profile or bulk-updating fields.
+</Aside>
+
+### Clear a Specific Field
+
+Remove a field from your domain:
+
+```typescript
+import { clearField } from "@midnames/sdk";
+
+const result = await clearField("alice.night", "twitter", providers);
+
+if (result.success) {
+  console.log("Field cleared:", result.data.transactionId);
+}
+```
+
+### Clear All Fields
+
+Remove all custom fields from your domain:
+
+```typescript
+import { clearAllFields } from "@midnames/sdk";
+
+const result = await clearAllFields("alice.night", providers);
+
+if (result.success) {
+  console.log("All fields cleared:", result.data.transactionId);
+}
+```
+
+## Domain Target Management
+
+### Update Domain Target
+
+Change where your domain resolves to. The target can be either a wallet address or a contract address:
+
+```typescript
+import { updateDomainTarget } from "@midnames/sdk";
+
+// Point to a wallet address
+const result1 = await updateDomainTarget(
+  "alice.night",
+  "mn_shield-cpk_test1abc...", // Wallet address
+  providers
+);
+
+// Or point to a contract address
+const result2 = await updateDomainTarget(
+  "alice.night",
+  "0200abc123...", // Contract address
+  providers
+);
+```
+
+<Aside type="note">
+  The SDK automatically detects whether the target is a wallet address (starts
+  with `mn_`) or contract address (starts with `0200` or `0x`).
+</Aside>
+
+## Ownership Transfer
+
+### Transfer Domain Ownership (Method 1)
+
+Transfer ownership using the parent domain's contract:
+
+```typescript
+import { transferDomainOwnership } from "@midnames/sdk";
+
+const result = await transferDomainOwnership(
+  "night", // Parent domain
+  "alice", // Subdomain name
+  "mn_shield-cpk_test1xyz...", // New owner's address
+  providers
+);
+
+if (result.success) {
+  console.log("Transfer complete:", result.data.transactionId);
+}
+```
+
+<Aside type="danger">
+  **Transfers are permanent!** Double-check the recipient address before
+  confirming. Once transferred, you lose ownership and cannot reverse the
+  transaction.
+</Aside>
+
+### Change Domain Owner (Method 2)
+
+Transfer ownership using the domain's own contract:
+
+```typescript
+import { changeDomainOwner } from "@midnames/sdk";
+
+const result = await changeDomainOwner(
+  "alice.night",
+  "mn_shield-cpk_test1xyz...", // New owner's address
+  providers
+);
+```
+
+**When to use each method:**
+
+- Use `transferDomainOwnership()` when you own the parent domain
+- Use `changeDomainOwner()` when you own the domain itself
+
+## Subdomain Registration
+
+### Register Subdomain (Free)
+
+As a domain owner, you can register subdomains for free:
+
+```typescript
+import { registerDomainFor } from "@midnames/sdk";
+
+const result = await registerDomainFor(
+  "alice.night", // Parent domain you own
+  "mn_shield-cpk_test1bob...", // Subdomain owner address
+  "work", // Subdomain name
+  "0200contract123...", // Resolver contract address
+  providers
+);
+
+// This creates: work.alice.night
+```
+
+<Aside type="tip">
+  Parent domain owners can register subdomains for free without requiring
+  payment, making it easy to create hierarchical domain structures.
+</Aside>
+
+### Buy Subdomain (Paid)
+
+Purchase a subdomain when you're not the parent owner:
+
+```typescript
+import { buyDomainFor } from "@midnames/sdk";
+
+const result = await buyDomainFor(
+  "alice.night", // Parent domain
+  "mn_shield-cpk_test1bob...", // Subdomain owner address
+  "blog", // Subdomain name
+  "0200contract456...", // Resolver contract address
+  BigInt(1000), // Payment amount
+  providers
+);
+
+// This creates: blog.alice.night
+```
+
+The payment amount must match the `domainCost` setting of the parent domain.
+
+## Domain Settings
+
+### Update Subdomain Pricing
+
+Change the cost for others to buy subdomains under your domain:
+
+```typescript
+import { updateDomainCost } from "@midnames/sdk";
+
+const result = await updateDomainCost(
+  "alice.night",
+  BigInt(5000), // New cost (in smallest token unit)
+  providers
+);
+```
+
+**Pricing strategy examples:**
+
+```typescript
+// Free subdomains
+await updateDomainCost("alice.night", BigInt(0), providers);
+
+// Paid subdomains
+await updateDomainCost("alice.night", BigInt(10000), providers);
+
+// Premium subdomains
+await updateDomainCost("premium.alice.night", BigInt(100000), providers);
+```
+
+### Update Accepted Token Type
+
+Change which token type is accepted for subdomain purchases:
+
+```typescript
+import { updateDomainColor } from "@midnames/sdk";
+
+// colorBytes must be a 32-byte Uint8Array representing the token identifier
+const colorBytes = new Uint8Array(32); // Your token color
+
+const result = await updateDomainColor("alice.night", colorBytes, providers);
+```
+
+<Aside type="note">
+  The "color" refers to the token identifier in Midnight's UTXO model. Most
+  users will use the native token (default).
+</Aside>
+
+### Set Domain Resolver
+
+Update the resolver contract for a subdomain:
+
+```typescript
+import { setDomainResolver } from "@midnames/sdk";
+
+const result = await setDomainResolver(
+  "alice.night", // Parent domain
+  "work", // Subdomain name
+  "0200newResolver...", // New resolver address
+  providers
+);
+
+// Updates resolver for: work.alice.night
+```
+
+## Error Handling
+
+All operations return a `Result` type:
+
+```typescript
+const result = await insertField("alice.night", "name", "Alice", providers);
+
+if (!result.success) {
+  // Handle errors
+  console.error("Error code:", result.error.code);
+  console.error("Message:", result.error.message);
+
+  switch (result.error.code) {
+    case "NETWORK_ERROR":
+      console.log("Check your network connection");
+      break;
+    case "DOMAIN_NOT_FOUND":
+      console.log("Domain does not exist");
+      break;
+    default:
+      console.log("Unexpected error:", result.error);
+  }
+}
+```
+
+## Transaction Monitoring
+
+All successful operations return a transaction ID:
+
+```typescript
+const result = await insertField("alice.night", "bio", "Hello!", providers);
+
+if (result.success) {
+  const txId = result.data.transactionId;
+  console.log("Transaction submitted:", txId);
+
+  // You can use the Midnight indexer to check transaction status
+  // (exact implementation depends on your setup)
+}
+```
+
+## Best Practices & Recommendations
+
+### 1. Batch Field Updates
+
+Use `addMultipleFields()` instead of multiple `insertField()` calls:
+
+```typescript
+// Less efficient (3 transactions)
+await insertField("alice.night", "name", "Alice", providers);
+await insertField("alice.night", "bio", "Developer", providers);
+await insertField("alice.night", "twitter", "@alice", providers);
+
+// More efficient (1 transaction)
+await addMultipleFields(
+  "alice.night",
+  [
+    ["name", "Alice"],
+    ["bio", "Developer"],
+    ["twitter", "@alice"],
+  ],
+  providers
+);
+```
+
+### 2. Verify Ownership Before Operations
+
+```typescript
+import { getDomainInfo } from "@midnames/sdk";
+
+const info = await getDomainInfo("alice.night");
+if (info.success && info.data.owner === myWalletAddress) {
+  // Safe to proceed with write operations
+  await insertField("alice.night", "bio", "Updated!", providers);
+}
+```
+
+### 3. Handle Transaction Failures Gracefully
+
+```typescript
+async function updateFieldWithRetry(
+  domain: string,
+  key: string,
+  value: string,
+  maxRetries = 3
+) {
+  for (let i = 0; i < maxRetries; i++) {
+    const result = await insertField(domain, key, value, providers);
+
+    if (result.success) {
+      return result.data.transactionId;
+    }
+
+    if (result.error.code !== "NETWORK_ERROR") {
+      // Non-retryable error
+      throw result.error;
+    }
+
+    // Wait before retry
+    await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
+  }
+
+  throw new Error("Max retries exceeded");
+}
+```
+
+## Complete Example
+
+Here's a full example of setting up a domain profile:
+
+```typescript
+import {
+  addMultipleFields,
+  updateDomainTarget,
+  updateDomainCost,
+} from "@midnames/sdk";
+
+async function setupDomainProfile(
+  domain: string,
+  providers: ContractProviders
+) {
+  // 1. Set up profile fields
+  const fieldsResult = await addMultipleFields(
+    domain,
+    [
+      ["name", "Alice Cooper"],
+      ["bio", "Web3 Developer | Midnight Enthusiast"],
+      ["avatar", "https://avatars.example.com/alice.png"],
+      ["website", "https://alice.dev"],
+      ["twitter", "@alice"],
+      ["github", "alice"],
+      ["epk", "mn_shield-epk_test1..."],
+    ],
+    providers
+  );
+
+  if (!fieldsResult.success) {
+    console.error("Failed to set fields:", fieldsResult.error);
+    return;
+  }
+
+  console.log("Profile fields set:", fieldsResult.data.transactionId);
+
+  // 2. Set domain target
+  const targetResult = await updateDomainTarget(
+    domain,
+    "mn_shield-cpk_test1abc...",
+    providers
+  );
+
+  if (!targetResult.success) {
+    console.error("Failed to set target:", targetResult.error);
+    return;
+  }
+
+  console.log("Target updated:", targetResult.data.transactionId);
+
+  // 3. Configure subdomain pricing
+  const costResult = await updateDomainCost(
+    domain,
+    BigInt(1000), // Charge 1000 for subdomains
+    providers
+  );
+
+  if (!costResult.success) {
+    console.error("Failed to set cost:", costResult.error);
+    return;
+  }
+
+  console.log("Subdomain pricing set:", costResult.data.transactionId);
+  console.log("Domain setup complete!");
+}
+
+// Usage
+await setupDomainProfile("alice.night", providers);
+```
+
+## Next Steps
+
+- Learn about [domain resolution](/reference/resolve/) for reading domain data
+- Explore [utility functions](/reference/utils/) for domain validation and formatting
+- Check the [error handling guide](/reference/errors/) for comprehensive error management

@@ -1,10 +1,93 @@
 ---
 title: SDK Reference
-description: Here are some references to start using the Midnames SDK.
+description: Complete API reference for the Midnames SDK
 sidebar:
   hidden: true
 ---
 
-Here are some references to start using the Midnames SDK.
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
-Look through the list on the left to find a guide that suits your needs.
+Complete API documentation for the Midnames SDK. Learn how to resolve domains, manage domain operations, display profile widgets, and use utility functions.
+
+## Core Functionality
+
+<CardGrid>
+  <LinkCard
+    title="Domain Resolution"
+    description="Query domain data, resolve names to addresses, and fetch profile information."
+    href="/reference/resolve/"
+  />
+  <LinkCard
+    title="Domain Operations"
+    description="Write operations for managing domains: update fields, transfer ownership, register subdomains."
+    href="/reference/operations/"
+  />
+</CardGrid>
+
+## Components & UI
+
+<CardGrid>
+  <LinkCard
+    title="Profile Widget"
+    description="Pre-built React component for displaying beautiful domain profiles with full customization."
+    href="/reference/widget/"
+  />
+</CardGrid>
+
+## Utilities & Helpers
+
+<CardGrid>
+  <LinkCard
+    title="Utility Functions"
+    description="Helper functions for domain validation, normalization, parsing, and address formatting."
+    href="/reference/utils/"
+  />
+  <LinkCard
+    title="TypeScript Types"
+    description="Complete TypeScript type definitions, interfaces, and error types."
+    href="/reference/types/"
+  />
+</CardGrid>
+
+## Quick Links
+
+- **New to the SDK?** Start with the [Quick Start Guide](/guides/quickstart/)
+- **Need examples?** Check out the code examples in each reference page
+- **Looking for guides?** Visit the [Guides section](/guides/)
+
+## Installation
+
+```bash
+npm install @midnames/sdk
+```
+
+For React components:
+
+```bash
+npm install @midnames/sdk react react-dom lucide-react
+```
+
+## Basic Usage
+
+```typescript
+import { resolveDomain, getDomainProfile } from '@midnames/sdk';
+
+// Resolve a domain
+const result = await resolveDomain('alice.night');
+if (result.success) {
+  console.log('Address:', result.data);
+}
+
+// Get full profile
+const profile = await getDomainProfile('alice.night');
+if (profile.success) {
+  console.log('Name:', profile.data.fields.get('name'));
+  console.log('Bio:', profile.data.fields.get('bio'));
+}
+```
+
+## Support
+
+- **Documentation**: Browse through the reference pages on the left
+- **GitHub**: [https://github.com/midnames/sdk](https://github.com/midnames/sdk)
+- **Issues**: [Report bugs or request features](https://github.com/midnames/sdk/issues)

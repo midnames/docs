@@ -1,4 +1,320 @@
 ---
 title: Resolve a .night domain
 description: How to use the SDK to resolve a .night domain.
+sidebar:
+  label: Domain Resolution
 ---
+
+import { Aside, Code, Tabs, TabItem } from "@astrojs/starlight/components";
+
+Learn how to resolve `.night` domains to their target addresses using the Midnames SDK. Domain resolution is the core functionality that allows you to translate human-readable names into blockchain addresses.
+
+## Overview
+
+The SDK provides several functions for reading domain data:
+
+- **`resolveDomain()`** - Resolve a domain to its target address
+- **`getDomainInfo()`** - Get ownership and resolver information
+- **`getDomainProfile()`** - Get complete profile data including fields
+- **`getDomainFields()`** - Get custom fields stored in a domain
+- **`getDomainSettings()`** - Get domain settings (cost, coin color)
+
+## Installation
+
+```bash
+npm install @midnames/sdk
+```
+
+## Basic Domain Resolution
+
+### Resolve a domain to its target address
+
+The `resolveDomain()` function returns the target address that a domain points to.
+
+```typescript
+import { resolveDomain } from '@midnames/sdk';
+
+// Resolve a domain
+const result: = await resolveDomain('alice.night');
+
+if (result.success) {
+  console.log('Target address:', result.data);
+  // Output: mn_shield-cpk_test1... or 0200...
+} else {
+  console.error('Error:', result.error.message);
+}
+```
+
+<Aside type="tip">
+  All SDK functions return a `Result` type that contains either `success: true`
+  with `data`, or `success: false` with an `error`. This pattern ensures
+  type-safe error handling.
+</Aside>
+
+### Using a custom provider
+
+By default, the SDK connects to the Midnight TestNet. You can provide a custom provider:
+
+```typescript
+import { resolveDomain, createDefaultProvider } from "@midnames/sdk";
+import { NetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+
+// Create a custom provider
+const provider = createDefaultProvider({
+  indexerUrl: "https://your-indexer.example.com/api/v1/graphql",
+  indexerWsUrl: "wss://your-indexer.example.com/api/v1/graphql/ws",
+  networkId: NetworkId.TestNet,
+});
+
+// Use it for resolution
+const result = await resolveDomain("alice.night", { provider });
+```
+
+## Get Domain Information
+
+### Get ownership and resolver details
+
+```typescript
+import { getDomainInfo } from "@midnames/sdk";
+
+const result = await getDomainInfo("alice.night");
+
+if (result.success) {
+  const { owner, resolver, contractAddress } = result.data;
+  console.log("Owner:", owner); // Wallet address
+  console.log("Resolver:", resolver); // Contract address
+  console.log("Contract:", contractAddress); // Parent contract
+}
+```
+
+**Return type:**
+
+```typescript
+interface DomainInfo {
+  owner: string; // The wallet address that owns the domain
+  resolver: string; // The contract address that resolves the domain
+  contractAddress?: string; // The parent contract address
+}
+```
+
+## Get Complete Domain Profile
+
+### Fetch all domain data in one call
+
+The `getDomainProfile()` function aggregates all domain information including custom fields:
+
+```typescript
+import { getDomainProfile } from "@midnames/sdk";
+
+const result = await getDomainProfile("id.alice.night");
+
+if (result.success) {
+  const profile = result.data;
+
+  console.log("Domain:", profile.fullDomain);
+  console.log("Target:", profile.resolvedTarget);
+  console.log("Owner:", profile.info?.owner);
+
+  // Access custom fields
+  const name = profile.fields.get("name");
+  const bio = profile.fields.get("bio");
+  const avatar = profile.fields.get("avatar");
+  const twitter = profile.fields.get("twitter");
+
+  console.log("Name:", name);
+  console.log("Bio:", bio);
+}
+```
+
+**Return type:**
+
+```typescript
+interface DomainProfileData {
+  fullDomain: string; // Normalized domain name
+  resolvedTarget: string | null; // Target address or null
+  info: DomainInfo | null; // Ownership info or null
+  fields: Map<string, string>; // Custom fields as key-value pairs
+  settings: DomainSettings | null; // Domain settings or null
+}
+```
+
+### Common Profile Fields
+
+These fields are recognized by the MidNames ecosystem:
+
+| Field      | Description                              | Example                   |
+| ---------- | ---------------------------------------- | ------------------------- |
+| `name`     | Display name                             | `"Alice"`                 |
+| `bio`      | Short biography                          | `"Web3 developer"`        |
+| `avatar`   | Midnight Contract Address or IPFS or URL | `see below`               |
+| `banner`   | Banner image URL                         | `"https://..."`           |
+| `website`  | Personal website                         | `"alice.dev"`             |
+| `twitter`  | Twitter handle                           | `"@alice"`                |
+| `github`   | GitHub username                          | `"alice"`                 |
+| `location` | Location                                 | `"San Francisco"`         |
+| `epk`      | Encryption public key                    | `"mn_shield-epk_test..."` |
+
+<Aside type="note">
+  The `epk` field is special: when combined with a `CoinPublicKey` target, it
+  automatically derives a full shielded address (`mn_shield-addr_test...`).
+</Aside>
+
+## Avatar Types
+
+The `avatar` field supports multiple input formats.  
+This flexibility lets developers choose between centralized URLs, decentralized IPFS assets, or on-chain contract references.
+
+| Type                  | Description                                                                                              | Format Example                                                 |
+| --------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **URL**               | Direct link to an image hosted on the web.                                                               | `"https://example.com/avatar.png"`                             |
+| **IPFS**              | Reference to a decentralized image on IPFS (can include a gateway).                                      | `"ipfs://Qm123abc..."` or `"https://ipfs.io/ipfs/Qm123abc..."` |
+| **Midnight Contract** | On-chain avatar reference stored in a Midnight NFT contract, formatted as `<contractAddress>:<tokenId>`. | `"0200abc123def456...:42"`                                     |
+
+:::note
+If a contract-based avatar is provided, **Starlight automatically resolves** the NFT metadata and retrieves the associated image.
+:::
+
+## Get Domain Fields
+
+### Retrieve custom fields only
+
+```typescript
+import { getDomainFields } from "@midnames/sdk";
+
+// Get fields directly from a contract address
+const result = await getDomainFields("0200abc...");
+
+if (result.success) {
+  const fields = result.data;
+
+  for (const [key, value] of fields) {
+    console.log(`${key}: ${value}`);
+  }
+}
+```
+
+## Get Domain Settings
+
+### Query subdomain pricing and token type
+
+```typescript
+import { getDomainSettings } from "@midnames/sdk";
+
+const result = await getDomainSettings("0200abc...");
+
+if (result.success) {
+  const { coinColor, domainCost } = result.data;
+
+  console.log("Accepted token:", coinColor);
+  console.log("Subdomain cost:", domainCost);
+  // domainCost is a BigInt representing the price in the smallest unit
+}
+```
+
+**Return type:**
+
+```typescript
+interface DomainSettings {
+  coinColor: Uint8Array; // 32-byte token identifier
+  domainCost: bigint; // Price to register subdomains
+}
+```
+
+## Subdomain Resolution
+
+The SDK automatically handles subdomain hierarchy:
+
+```typescript
+// All of these work seamlessly
+await resolveDomain("alice.night"); // Top-level domain
+await resolveDomain("id.alice.night"); // Subdomain
+await resolveDomain("work.id.alice.night"); // Nested subdomain
+```
+
+<Aside type="tip">
+  You can create unlimited subdomain levels. Each subdomain is a separate
+  contract that can have its own fields, settings, and subdomains.
+</Aside>
+
+## Error Handling
+
+All SDK functions return a `Result` type for safe error handling:
+
+```typescript
+const result = await resolveDomain("invalid..domain.night");
+
+if (!result.success) {
+  console.error("Error code:", result.error.code);
+  console.error("Message:", result.error.message);
+
+  // Handle specific error types
+  switch (result.error.code) {
+    case "DOMAIN_NOT_FOUND":
+      console.log("Domain does not exist");
+      break;
+    case "INVALID_DOMAIN":
+      console.log("Domain format is invalid");
+      break;
+    case "NETWORK_ERROR":
+      console.log("Network connection failed");
+      break;
+  }
+}
+```
+
+### Error Types
+
+| Error Code           | Description                                    |
+| -------------------- | ---------------------------------------------- |
+| `DOMAIN_NOT_FOUND`   | Domain doesn't exist or hasn't been registered |
+| `INVALID_DOMAIN`     | Domain format doesn't match validation rules   |
+| `CONTRACT_NOT_FOUND` | Contract address not found on-chain            |
+| `NETWORK_ERROR`      | Network or provider connection error           |
+| `PROVIDER_ERROR`     | Issue with the data provider                   |
+
+## Complete Example
+
+Here's a full example showing domain resolution in a DApp:
+
+```typescript
+import { getDomainProfile, createDefaultProvider } from "@midnames/sdk";
+
+async function displayUserProfile(domain: string) {
+  const provider = createDefaultProvider();
+  const result = await getDomainProfile(domain, { provider });
+
+  if (!result.success) {
+    console.error(`Failed to load ${domain}:`, result.error.message);
+    return;
+  }
+
+  const profile = result.data;
+
+  // Check if domain exists
+  if (!profile.info) {
+    console.log(`${domain} is available!`);
+    return;
+  }
+
+  // Display profile information
+  console.log(`
+    Domain: ${profile.fullDomain}
+    Owner: ${profile.info.owner}
+    Target: ${profile.resolvedTarget || "Not set"}
+
+    Profile:
+    - Name: ${profile.fields.get("name") || "N/A"}
+    - Bio: ${profile.fields.get("bio") || "N/A"}
+    - Website: ${profile.fields.get("website") || "N/A"}
+  `);
+}
+
+// Usage
+await displayUserProfile("alice.night");
+```
+
+## Next Steps
+
+- Learn how to [update domain fields](/guides/update_fields/)
+- Explore the [Domain Profile Widget](/reference/widget/) for React applications
+- Read about [domain operations](/reference/operations/) for write operations

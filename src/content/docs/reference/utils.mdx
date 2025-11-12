@@ -1,0 +1,488 @@
+---
+title: Utility Functions
+description: Helper functions for domain validation, formatting, and address handling
+sidebar:
+  label: Utility Functions
+---
+
+import { Aside, Code } from "@astrojs/starlight/components";
+
+The SDK includes utility functions for domain name validation, normalization, parsing, and address formatting. These helpers are useful when building domain-aware applications.
+
+## Domain Utilities
+
+Import from `@midnames/sdk/utils/domain`:
+
+```typescript
+import {
+  normalizeDomain,
+  parseFullDomain,
+  isValidDomainName,
+  getParentDomain,
+  getSubdomain,
+  buildFullDomain,
+  buildTraversalPath,
+  isTLD,
+} from '@midnames/sdk/utils/domain';
+```
+
+### normalizeDomain()
+
+Normalizes a domain string by cleaning and standardizing the format.
+
+**Signature:**
+
+```typescript
+function normalizeDomain(input: string, assumeTld?: boolean): string
+```
+
+**Parameters:**
+
+- `input` - The domain string to normalize
+- `assumeTld` - (optional, default: `true`) Whether to automatically append `.night` if missing
+
+**Returns:** Normalized domain string in lowercase with standard formatting
+
+**Examples:**
+
+```typescript
+normalizeDomain('Alice.Night');
+// => 'alice.night'
+
+normalizeDomain('ALICE');
+// => 'alice.night' (auto-appends .night)
+
+normalizeDomain('alice', false);
+// => 'alice' (doesn't append .night)
+
+normalizeDomain('alice..night');
+// => 'alice.night' (removes double dots)
+
+normalizeDomain('  alice.night.  ');
+// => 'alice.night' (trims whitespace)
+```
+
+<Aside type="tip">
+  Always use `normalizeDomain()` before passing user input to SDK functions. It ensures consistent formatting and prevents common mistakes.
+</Aside>
+
+### parseFullDomain()
+
+Parses a full domain into its components.
+
+**Signature:**
+
+```typescript
+function parseFullDomain(fullDomain: string, tld?: string): ParsedDomain
+
+interface ParsedDomain {
+  isValid: boolean;
+  domainName: string;      // The leftmost label
+  parentDomainPath: string; // Everything after the first label
+  fullDomain: string;       // The normalized full domain
+  depth: number;            // Number of labels (excluding TLD)
+}
+```
+
+**Parameters:**
+
+- `fullDomain` - The domain to parse
+- `tld` - (optional, default: `'night'`) The TLD to expect
+
+**Examples:**
+
+```typescript
+parseFullDomain('alice.night');
+// {
+//   isValid: true,
+//   domainName: 'alice',
+//   parentDomainPath: 'night',
+//   fullDomain: 'alice.night',
+//   depth: 1
+// }
+
+parseFullDomain('work.id.alice.night');
+// {
+//   isValid: true,
+//   domainName: 'work',
+//   parentDomainPath: 'id.alice.night',
+//   fullDomain: 'work.id.alice.night',
+//   depth: 3
+// }
+
+parseFullDomain('invalid');
+// {
+//   isValid: false,
+//   domainName: '',
+//   parentDomainPath: '',
+//   fullDomain: 'invalid.night',
+//   depth: 0
+// }
+```
+
+### isValidDomainName()
+
+Validates if a domain name follows the correct format rules.
+
+**Signature:**
+
+```typescript
+function isValidDomainName(domainName: string): boolean
+```
+
+**Rules:**
+
+- Length: 1-63 characters
+- Characters: lowercase letters (a-z), digits (0-9), hyphens (-)
+- Must start and end with a letter or digit (not hyphen)
+- No consecutive hyphens, dots, or special characters
+
+**Examples:**
+
+```typescript
+isValidDomainName('alice');        // true
+isValidDomainName('alice123');     // true
+isValidDomainName('alice-bob');    // true
+isValidDomainName('a');            // true
+isValidDomainName('123');          // true
+
+isValidDomainName('');             // false (empty)
+isValidDomainName('-alice');       // false (starts with hyphen)
+isValidDomainName('alice-');       // false (ends with hyphen)
+isValidDomainName('alice_bob');    // false (underscore not allowed)
+isValidDomainName('Alice');        // false (uppercase)
+isValidDomainName('alice bob');    // false (space not allowed)
+```
+
+<Aside type="note">
+  This function validates a single label, not a full domain. Use it to validate subdomain names before registration.
+</Aside>
+
+### getParentDomain()
+
+Returns the parent domain of a given domain.
+
+**Signature:**
+
+```typescript
+function getParentDomain(fullDomain: string): string | null
+```
+
+**Examples:**
+
+```typescript
+getParentDomain('alice.night');
+// => 'night'
+
+getParentDomain('work.id.alice.night');
+// => 'id.alice.night'
+
+getParentDomain('night');
+// => null (TLD has no parent)
+```
+
+### getSubdomain()
+
+Extracts the subdomain (leftmost label) from a full domain.
+
+**Signature:**
+
+```typescript
+function getSubdomain(fullDomain: string): string
+```
+
+**Examples:**
+
+```typescript
+getSubdomain('alice.night');
+// => 'alice'
+
+getSubdomain('work.id.alice.night');
+// => 'work'
+
+getSubdomain('night');
+// => 'night'
+```
+
+### buildFullDomain()
+
+Constructs a full domain from subdomain and parent parts.
+
+**Signature:**
+
+```typescript
+function buildFullDomain(subdomain: string, parent: string): string
+```
+
+**Examples:**
+
+```typescript
+buildFullDomain('alice', 'night');
+// => 'alice.night'
+
+buildFullDomain('work', 'id.alice.night');
+// => 'work.id.alice.night'
+
+buildFullDomain('', 'alice.night');
+// => 'alice.night' (empty subdomain returns parent)
+```
+
+### buildTraversalPath()
+
+Creates the path needed to traverse the domain hierarchy from TLD to the target domain.
+
+**Signature:**
+
+```typescript
+function buildTraversalPath(fullDomain: string, tld?: string): string[]
+```
+
+**Examples:**
+
+```typescript
+buildTraversalPath('alice.night');
+// => ['night', 'alice.night']
+
+buildTraversalPath('work.id.alice.night');
+// => ['night', 'alice.night', 'id.alice.night', 'work.id.alice.night']
+```
+
+This is useful for understanding how the SDK resolves domains internally.
+
+### isTLD()
+
+Checks if a domain is a top-level domain.
+
+**Signature:**
+
+```typescript
+function isTLD(domain: string, tld?: string): boolean
+```
+
+**Examples:**
+
+```typescript
+isTLD('night');        // true
+isTLD('night', 'night'); // true
+isTLD('alice.night');  // false
+```
+
+## Address Utilities
+
+Import from `@midnames/sdk/utils/address`:
+
+```typescript
+import {
+  bytesToHex,
+  formatContractAddress,
+  deriveShieldedAddress,
+  isWalletAddress,
+} from '@midnames/sdk/utils/address';
+```
+
+### bytesToHex()
+
+Converts a byte array to a hexadecimal string.
+
+**Signature:**
+
+```typescript
+function bytesToHex(bytes: Uint8Array): string
+```
+
+**Examples:**
+
+```typescript
+const bytes = new Uint8Array([0, 1, 255, 16]);
+bytesToHex(bytes);
+// => '0001ff10'
+```
+
+### formatContractAddress()
+
+Formats a contract address from raw bytes with the `0200` prefix.
+
+**Signature:**
+
+```typescript
+function formatContractAddress(bytes: Uint8Array): string
+```
+
+**Examples:**
+
+```typescript
+const contractBytes = new Uint8Array(32); // 32-byte contract ID
+formatContractAddress(contractBytes);
+// => '0200000000000000000000000000000000000000000000000000000000000000'
+```
+
+<Aside type="note">
+  Contract addresses in Midnight start with `0200` prefix, followed by 32 bytes in hex format.
+</Aside>
+
+### deriveShieldedAddress()
+
+Derives a full shielded address from a coin public key and encryption public key.
+
+**Signature:**
+
+```typescript
+function deriveShieldedAddress(
+  coinPublicKeyAddress: string,
+  encryptionPublicKey: string
+): string | null
+```
+
+**Parameters:**
+
+- `coinPublicKeyAddress` - A `mn_shield-cpk_test...` address
+- `encryptionPublicKey` - A `mn_shield-epk_test...` address
+
+**Returns:** A full shielded address (`mn_shield-addr_test...`) or `null` if invalid
+
+**Examples:**
+
+```typescript
+const cpk = 'mn_shield-cpk_test1abc...';
+const epk = 'mn_shield-epk_test1xyz...';
+
+const shieldedAddr = deriveShieldedAddress(cpk, epk);
+// => 'mn_shield-addr_test1...' or null
+```
+
+<Aside type="tip">
+  This is automatically used by the SDK when a domain has both a `CoinPublicKey` target and an `epk` field set.
+</Aside>
+
+### isWalletAddress()
+
+Checks if an address is a wallet address (vs contract address).
+
+**Signature:**
+
+```typescript
+function isWalletAddress(address: string): boolean
+```
+
+**Examples:**
+
+```typescript
+isWalletAddress('mn_shield-cpk_test1abc...');  // true
+isWalletAddress('mn_shield-addr_test1xyz...'); // true
+isWalletAddress('0200abc123...');              // false
+isWalletAddress('0xabc123...');                // false
+```
+
+## Common Patterns
+
+### Validate and normalize user input
+
+```typescript
+import { normalizeDomain, isValidDomainName } from '@midnames/sdk';
+
+function validateUserInput(input: string): string | null {
+  const normalized = normalizeDomain(input);
+  const parsed = parseFullDomain(normalized);
+
+  if (!parsed.isValid) {
+    return null; // Invalid format
+  }
+
+  if (!isValidDomainName(parsed.domainName)) {
+    return null; // Invalid domain name
+  }
+
+  return normalized; // Valid!
+}
+
+// Usage
+const domain = validateUserInput('Alice.Night');
+if (domain) {
+  console.log('Valid domain:', domain);
+  // => 'alice.night'
+}
+```
+
+### Build subdomain programmatically
+
+```typescript
+import { buildFullDomain, isValidDomainName } from '@midnames/sdk';
+
+function createSubdomain(parent: string, subdomain: string): string | null {
+  if (!isValidDomainName(subdomain)) {
+    return null; // Invalid subdomain name
+  }
+
+  return buildFullDomain(subdomain, parent);
+}
+
+// Usage
+const newDomain = createSubdomain('alice.night', 'work');
+// => 'work.alice.night'
+```
+
+### Parse and extract domain components
+
+```typescript
+import { parseFullDomain, getParentDomain, getSubdomain } from '@midnames/sdk';
+
+function analyzeDomain(fullDomain: string) {
+  const parsed = parseFullDomain(fullDomain);
+
+  if (!parsed.isValid) {
+    console.log('Invalid domain');
+    return;
+  }
+
+  console.log({
+    fullDomain: parsed.fullDomain,
+    label: getSubdomain(parsed.fullDomain),
+    parent: getParentDomain(parsed.fullDomain),
+    depth: parsed.depth,
+  });
+}
+
+analyzeDomain('work.id.alice.night');
+// {
+//   fullDomain: 'work.id.alice.night',
+//   label: 'work',
+//   parent: 'id.alice.night',
+//   depth: 3
+// }
+```
+
+### Check address types
+
+```typescript
+import { isWalletAddress } from '@midnames/sdk';
+
+function displayAddress(address: string) {
+  if (isWalletAddress(address)) {
+    console.log('This is a wallet address');
+    // Show user-friendly wallet UI
+  } else {
+    console.log('This is a contract address');
+    // Show contract explorer link
+  }
+}
+```
+
+## TypeScript Types
+
+All utility functions are fully typed. Import types when needed:
+
+```typescript
+import type { ParsedDomain } from '@midnames/sdk/utils/domain';
+
+function processDomain(parsed: ParsedDomain) {
+  if (parsed.isValid) {
+    console.log(`Valid: ${parsed.domainName}.${parsed.parentDomainPath}`);
+  }
+}
+```
+
+## Next Steps
+
+- Learn about [domain resolution](/reference/resolve/) to query domain data
+- Explore [domain operations](/reference/operations/) for write operations
+- Read the [error handling guide](/reference/errors/) for error management
