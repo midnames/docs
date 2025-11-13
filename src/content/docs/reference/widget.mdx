@@ -1,4 +1,532 @@
 ---
-title: Domain Widget
-description: How to use widgets in your own site.
+title: Domain Profile Widget
+description: React component for displaying .night domain profiles
+sidebar:
+  label: Profile Widget
 ---
+
+import { Aside, Code } from "@astrojs/starlight/components";
+
+The `DomainProfileWidget` is a pre-built React component that displays rich domain profile information with customizable styling and behavior. Perfect for integrating domain profiles into your DApp, wallet, or social platform.
+
+## Features
+
+- **Automatic data fetching** - Just provide a domain name
+- **Rich profile display** - Avatar, banner, bio, social links
+- **Fully customizable** - Multiple variants, themes, and visibility controls
+- **Copy-to-clipboard** - Built-in address copying functionality
+- **TypeScript support** - Full type safety
+- **Responsive design** - Works on all screen sizes
+- **Error handling** - Graceful error states
+
+## Installation
+
+```bash
+npm install @midnames/sdk react react-dom lucide-react
+```
+
+The widget requires these peer dependencies:
+- `react` >= 18
+- `react-dom` >= 18
+- `lucide-react` >= 0.400.0
+
+## Basic Usage
+
+### Import the component and styles
+
+```tsx
+import '@midnames/sdk/styles.css';
+import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+import { createDefaultProvider } from '@midnames/sdk';
+
+function App() {
+  const provider = createDefaultProvider();
+
+  return (
+    <DomainProfileWidget
+      fullDomain="alice.night"
+      publicDataProvider={provider}
+    />
+  );
+}
+```
+
+<Aside type="tip">
+  Don't forget to import the styles! The widget requires `@midnames/sdk/styles.css` for proper rendering.
+</Aside>
+
+### Minimal example
+
+```tsx
+import '@midnames/sdk/styles.css';
+import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+
+// Uses the default TestNet provider
+function MyComponent() {
+  return <DomainProfileWidget fullDomain="alice.night" />;
+}
+```
+
+## Props Reference
+
+### Required Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `fullDomain` | `string` | The full domain name to display (e.g., `"alice.night"`) |
+
+### Optional Props
+
+#### Provider Configuration
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `publicDataProvider` | `PublicDataProvider` | TestNet provider | Custom Midnight network provider |
+
+#### Layout & Variant
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `variant` | `'full' \| 'compact' \| 'inline' \| 'minimal'` | `'full'` | Display variant (see examples below) |
+| `className` | `string` | - | Additional CSS classes |
+
+#### Visibility Controls
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `showStatus` | `boolean` | `true` | Show registration status badge |
+| `showBanner` | `boolean` | `true` | Show banner image if available |
+| `showAvatar` | `boolean` | `true` | Show avatar/profile picture |
+| `showBio` | `boolean` | `true` | Show biography text |
+| `showDomainInfo` | `boolean` | `true` | Show technical fields (owner, target, resolver) |
+| `showSocialLinks` | `boolean` | `true` | Show social media links |
+| `showCopyButtons` | `boolean` | `true` | Show copy-to-clipboard buttons |
+
+#### Field Selection
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `fields` | `Array<'target' \| 'owner' \| 'resolver'>` | `['target', 'owner', 'resolver']` | Which technical fields to display |
+| `customFields` | `string[]` | `[]` | Additional custom fields to show |
+
+#### Styling
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Color theme |
+| `borderRadius` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | Corner rounding |
+| `padding` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | Internal spacing |
+
+#### Event Callbacks
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `onError` | `(error: MidnamesError) => void` | Called when an error occurs |
+| `onFieldClick` | `(field: string, value: string) => void` | Called when a field is clicked |
+| `onCopySuccess` | `(field: string, value: string) => void` | Called after successful copy |
+| `renderActions` | `(data: DomainProfileData \| null) => ReactNode` | Custom action buttons/content |
+
+## Variants
+
+### Full (default)
+
+The complete profile card with all features enabled:
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  variant="full"
+/>
+```
+
+Shows: banner, avatar, name, domain, status, bio, technical fields, social links
+
+### Compact
+
+A condensed version without banner and reduced spacing:
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  variant="compact"
+/>
+```
+
+Shows: avatar, name, domain, status, bio (if available), technical fields
+
+### Inline
+
+Horizontal layout optimized for inline display:
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  variant="inline"
+/>
+```
+
+Shows: avatar, name, domain (side-by-side layout)
+
+### Minimal
+
+Just the essentials:
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  variant="minimal"
+/>
+```
+
+Shows: avatar, name
+
+## Customization Examples
+
+### Hide specific sections
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  showBanner={false}
+  showSocialLinks={false}
+  showStatus={false}
+/>
+```
+
+### Show only specific fields
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  fields={['target']}  // Only show target address
+  showSocialLinks={false}
+  showBio={false}
+/>
+```
+
+### Add custom fields
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  customFields={['discord', 'telegram', 'email']}
+/>
+```
+
+If these fields exist in the domain's custom fields, they'll be displayed.
+
+### Dark theme
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  theme="dark"
+  borderRadius="lg"
+  padding="lg"
+/>
+```
+
+### Custom styling
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  className="my-custom-widget"
+  borderRadius="none"
+  padding="sm"
+/>
+```
+
+Then in your CSS:
+
+```css
+.my-custom-widget {
+  border: 2px solid #6366f1;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+.my-custom-widget .midnames-name {
+  color: #6366f1;
+  font-weight: 800;
+}
+```
+
+## Event Handling
+
+### Handle copy events
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  onCopySuccess={(field, value) => {
+    console.log(`Copied ${field}:`, value);
+    // Show a toast notification, etc.
+  }}
+/>
+```
+
+### Handle field clicks
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  onFieldClick={(field, value) => {
+    console.log(`Clicked ${field}:`, value);
+    // Navigate to block explorer, open modal, etc.
+  }}
+/>
+```
+
+### Handle errors
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  onError={(error) => {
+    console.error('Widget error:', error.code, error.message);
+    // Log to error tracking service
+  }}
+/>
+```
+
+### Custom actions
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  renderActions={(data) => {
+    if (!data?.info) return null;
+
+    return (
+      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+        <button onClick={() => sendMessage(data.fullDomain)}>
+          Send Message
+        </button>
+        <button onClick={() => sendPayment(data.resolvedTarget)}>
+          Send Payment
+        </button>
+      </div>
+    );
+  }}
+/>
+```
+
+## Profile Fields
+
+The widget automatically displays these fields if they exist:
+
+| Field | Displayed As | Location |
+|-------|--------------|----------|
+| `name` | Display name | Header |
+| `bio` | Biography text | Below header |
+| `avatar` | Profile picture | Header avatar |
+| `banner` | Header banner image | Top of card |
+| `website` | Clickable chip | Social links section |
+| `twitter` | "@username" chip | Social links section |
+| `github` | Username chip | Social links section |
+| `location` | Location chip | Social links section |
+| `epk` | Used for address derivation | Not displayed directly |
+
+## CopyableValue Component
+
+The widget includes a `CopyableValue` component that you can use independently:
+
+```tsx
+import { CopyableValue } from '@midnames/sdk/react/DomainProfileWidget';
+
+function MyComponent() {
+  return (
+    <CopyableValue
+      value="mn_shield-cpk_test1abc123..."
+      showCopy={true}
+      onCopySuccess={(field, value) => console.log('Copied!', value)}
+      fieldName="address"
+    />
+  );
+}
+```
+
+## Loading States
+
+The widget automatically shows a loading state while fetching domain data:
+
+```tsx
+<DomainProfileWidget fullDomain="alice.night" />
+// Shows: "Checking..." status while loading
+```
+
+## Error States
+
+If a domain doesn't exist or an error occurs:
+
+```tsx
+<DomainProfileWidget fullDomain="nonexistent.night" />
+// Shows: Error card with error details
+```
+
+You can handle errors programmatically:
+
+```tsx
+<DomainProfileWidget
+  fullDomain="alice.night"
+  onError={(error) => {
+    if (error.code === 'DOMAIN_NOT_FOUND') {
+      // Show "Domain available" UI
+    } else {
+      // Show error notification
+    }
+  }}
+/>
+```
+
+## Multiple Widgets
+
+Display multiple profiles easily:
+
+```tsx
+function DomainGallery() {
+  const domains = ['alice.night', 'bob.night', 'charlie.night'];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+      {domains.map(domain => (
+        <DomainProfileWidget
+          key={domain}
+          fullDomain={domain}
+          variant="compact"
+        />
+      ))}
+    </div>
+  );
+}
+```
+
+## Performance Tips
+
+### Use a shared provider
+
+```tsx
+import { createDefaultProvider } from '@midnames/sdk';
+
+const provider = createDefaultProvider();
+
+function MyApp() {
+  return (
+    <>
+      <DomainProfileWidget fullDomain="alice.night" publicDataProvider={provider} />
+      <DomainProfileWidget fullDomain="bob.night" publicDataProvider={provider} />
+      <DomainProfileWidget fullDomain="charlie.night" publicDataProvider={provider} />
+    </>
+  );
+}
+```
+
+### Lazy loading
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const DomainProfileWidget = lazy(() =>
+  import('@midnames/sdk/react/DomainProfileWidget').then(mod => ({
+    default: mod.DomainProfileWidget
+  }))
+);
+
+function MyComponent() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DomainProfileWidget fullDomain="alice.night" />
+    </Suspense>
+  );
+}
+```
+
+## Complete Example
+
+Here's a full implementation showing common patterns:
+
+```tsx
+import { useState } from 'react';
+import '@midnames/sdk/styles.css';
+import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+import { createDefaultProvider } from '@midnames/sdk';
+
+function DomainProfilePage() {
+  const [domain, setDomain] = useState('alice.night');
+  const provider = createDefaultProvider();
+
+  return (
+    <div className="profile-page">
+      <input
+        type="text"
+        value={domain}
+        onChange={(e) => setDomain(e.target.value)}
+        placeholder="Enter domain..."
+      />
+
+      <DomainProfileWidget
+        fullDomain={domain}
+        publicDataProvider={provider}
+        variant="full"
+        theme="auto"
+        showCopyButtons={true}
+        onCopySuccess={(field, value) => {
+          console.log(`✅ Copied ${field}`);
+        }}
+        onError={(error) => {
+          console.error('Error loading profile:', error);
+        }}
+        renderActions={(data) => {
+          if (!data?.info) return null;
+
+          return (
+            <div className="profile-actions">
+              <button onClick={() => window.open(`https://explorer.midnight.network/address/${data.resolvedTarget}`)}>
+                View on Explorer
+              </button>
+            </div>
+          );
+        }}
+      />
+    </div>
+  );
+}
+
+export default DomainProfilePage;
+```
+
+## CSS Customization
+
+You can override widget styles using CSS:
+
+```css
+/* Change card background */
+.midnames-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Customize name text */
+.midnames-name {
+  font-size: 2rem;
+  font-weight: 900;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Style social links */
+.midnames-chip {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Customize copy button */
+.midnames-copy-icon {
+  color: #6366f1;
+}
+```
+
+## Next Steps
+
+- Learn about [domain resolution](/reference/resolve/) for reading domain data
+- Explore [domain operations](/reference/operations/) for write operations
+- Check out [utility functions](/reference/utils/) for helper functions

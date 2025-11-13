@@ -1,6 +1,431 @@
 ---
-title: Update fields in a domain
-description: Learn how to update the records in a domain in Midnight
+title: Update Domain Fields
+description: Learn how to update custom fields in your .night domain
 sidebar:
-  label: Update fields in a domain
+  label: Update Domain Fields
 ---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+Learn how to update custom fields in your `.night` domain using the Midnames SDK. Fields allow you to store profile information, social links, and metadata on-chain.
+
+## What are Domain Fields?
+
+Domain fields are key-value pairs stored in your domain's contract. They allow you to:
+
+- Store profile information (name, bio, avatar, banner)
+- Add social media links (Twitter, GitHub, website, etc.)
+- Set privacy settings (encryption public key)
+- Store custom metadata specific to your application
+
+<Aside type="tip">
+  Fields are publicly readable but only writable by the domain owner. This makes them perfect for public profile information.
+</Aside>
+
+## Standard Fields
+
+These fields are recognized across the Midnames ecosystem:
+
+| Field      | Purpose                            | Example                   |
+| ---------- | -----------------------------------| ------------------------- |
+| `name`     | Display name                       | `"Alice Cooper"`          |
+| `bio`      | Short biography                    | `"Web3 Developer"`        |
+| `avatar`   | HTTPS URL or Contract Address/IPFS |  see [Avatar Types](/reference/resolve/#avatar-types)          |
+| `website`  | Personal website                   | `"https://alice.dev"`     |
+| `twitter`  | Twitter handle                     | `"@alice"` or `"alice"`   |
+| `github`   | GitHub username                    | `"alice"`                 |
+| `location` | Location                           | `"San Francisco"`         |
+| `epk`      | Encryption public key              | `"mn_shield-epk_test..."` |
+| `email`    | Email address                      | `"alice@example.com"`     |
+| `discord`  | Discord handle                     | `"alice#1234"`            |
+| `telegram` | Telegram username                  | `"@alice"`                |
+
+<Aside type="note">
+  You can also create custom fields for application-specific data. There's no limit to the field names you can use.
+</Aside>
+
+## Prerequisites
+
+To update fields, you need:
+
+1. **Lace Wallet** installed and funded ([Get Lace](https://docs.midnight.network/develop/tutorial/using/chrome-ext))
+2. **Domain ownership** - You must own the domain to update its fields
+3. **Funded wallet** for blockchain transactions
+4. **SDK setup** with wallet providers (see [Domain Operations](/reference/operations/#prerequisites))
+
+## Update a Single Field
+
+### Using the SDK
+
+```typescript
+import { insertField } from '@midnames/sdk';
+
+async function updateBio(domain: string, providers) {
+  const result = await insertField(
+    domain,
+    'bio',
+    'Web3 Developer | Midnight Enthusiast',
+    providers
+  );
+
+  if (result.success) {
+    console.log('Field updated!', result.data.transactionId);
+  } else {
+    console.error('Update failed:', result.error.message);
+  }
+}
+
+await updateBio('alice.night', providers);
+```
+
+### Common Updates
+
+```typescript
+// Update profile name
+await insertField('alice.night', 'name', 'Alice Cooper', providers);
+
+// Set avatar
+await insertField('alice.night', 'avatar', 'https://avatars.example.com/alice.png', providers);
+
+// Add Twitter
+await insertField('alice.night', 'twitter', '@alice', providers);
+
+// Add website
+await insertField('alice.night', 'website', 'https://alice.dev', providers);
+
+// Set encryption key
+await insertField('alice.night', 'epk', 'mn_shield-epk_test1...', providers);
+```
+
+## Update Multiple Fields
+
+For efficiency, Midnames SDK provides batch addition for multiple fields in a single transaction:
+
+```typescript
+import { addMultipleFields } from '@midnames/sdk';
+
+async function setupProfile(domain: string, providers) {
+  const fields: Array<[string, string]> = [
+    ['name', 'Alice Cooper'],
+    ['bio', 'Web3 Developer | Midnight Enthusiast'],
+    ['avatar', 'https://avatars.example.com/alice.png'],
+    ['website', 'https://alice.dev'],
+    ['twitter', '@alice'],
+    ['github', 'alice'],
+    ['location', 'San Francisco'],
+  ];
+
+  const result = await addMultipleFields(domain, fields, providers);
+
+  if (result.success) {
+    console.log('Profile setup complete!', result.data.transactionId);
+  } else {
+    console.error('Setup failed:', result.error.message);
+  }
+}
+
+await setupProfile('alice.night', providers);
+```
+
+<Aside type="tip">
+  **Maximum 10 fields per transaction.** If you need to set more, split them into multiple `addMultipleFields()` calls. Take a look at [Best Practices](/guides/update_fields/#best-practices) for more tips.
+</Aside>
+
+## Remove Fields
+
+### Remove a specific field
+
+```typescript
+import { clearField } from '@midnames/sdk';
+
+// Remove Twitter link
+const result = await clearField('alice.night', 'twitter', providers);
+
+if (result.success) {
+  console.log('Field removed:', result.data.transactionId);
+}
+```
+
+### Remove all fields
+
+```typescript
+import { clearAllFields } from '@midnames/sdk';
+
+// Clear entire profile
+const result = await clearAllFields('alice.night', providers);
+
+if (result.success) {
+  console.log('All fields cleared:', result.data.transactionId);
+}
+```
+
+<Aside type="caution">
+  **Warning:** `clearAllFields()` removes ALL custom fields from your domain. This action cannot be undone. Your domain name and ownership remain unchanged.
+</Aside>
+
+## Complete Example: Profile Manager
+
+Here's a full React component for managing domain fields:
+
+```tsx
+import { useState } from 'react';
+import { insertField, getDomainProfile } from '@midnames/sdk';
+import type { ContractProviders } from '@midnight-ntwrk/midnight-js-contracts';
+
+function ProfileEditor({ domain, providers }: {
+  domain: string;
+  providers: ContractProviders;
+}) {
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSave = async () => {
+    setLoading(true);
+
+    try {
+      // Update each field
+      if (name) {
+        const result = await insertField(domain, 'name', name, providers);
+        if (!result.success) throw result.error;
+      }
+
+      if (bio) {
+        const result = await insertField(domain, 'bio', bio, providers);
+        if (!result.success) throw result.error;
+      }
+
+      if (twitter) {
+        const result = await insertField(domain, 'twitter', twitter, providers);
+        if (!result.success) throw result.error;
+      }
+
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Update failed:', error);
+      alert('Update failed. See console for details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem' }}>
+      <h2>Edit Profile: {domain}</h2>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <label>Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Your display name"
+          style={{ width: '100%', padding: '0.5rem' }}
+        />
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <label>Bio</label>
+        <textarea
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder="Tell us about yourself"
+          style={{ width: '100%', padding: '0.5rem', minHeight: '100px' }}
+        />
+      </div>
+
+      <div style={{ marginBottom: '1rem' }}>
+        <label>Twitter</label>
+        <input
+          type="text"
+          value={twitter}
+          onChange={(e) => setTwitter(e.target.value)}
+          placeholder="@username"
+          style={{ width: '100%', padding: '0.5rem' }}
+        />
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={loading}
+        style={{
+          padding: '0.75rem 1.5rem',
+          background: '#6366f1',
+          color: 'white',
+          border: 'none',
+          borderRadius: '0.5rem',
+          cursor: loading ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {loading ? 'Updating...' : 'Save Profile'}
+      </button>
+    </div>
+  );
+}
+```
+
+## Using Midnames Web App
+
+You can also update fields through the Midnames web interface at [ns.midnames.com](https://ns.midnames.com):
+
+<Steps>
+
+1. **Connect your wallet**
+
+   Visit [ns.midnames.com](https://ns.midnames.com) and connect your Lace wallet
+
+2. **Search for your domain**
+
+   Enter your domain name in the search bar
+
+3. **Click "Edit Profile"**
+
+   You'll see an edit interface with all available fields
+
+4. **Update fields**
+
+   Fill in any fields you want to update or modify
+
+5. **Save changes**
+
+   Click "Save" and sign the transaction with your wallet
+
+</Steps>
+
+<Aside type="tip">
+  Using the web app is the easiest way to update fields if you're not integrating into your own application.
+</Aside>
+
+## Best Practices
+
+### 1. Use Standard Field Names
+
+Stick to standard field names when possible for maximum compatibility:
+
+```typescript
+// Good - recognized by all MNS apps. Easy to remember.
+await insertField('alice.night', 'twitter', '@alice', providers);
+
+// Less ideal - custom field name. Hard to remember or query.
+await insertField('alice.night', 'twitter_handle', '@alice', providers);
+```
+
+### 2. Validate Before Updating
+
+```typescript
+import { getDomainInfo } from '@midnames/sdk';
+
+async function safeUpdateField(domain: string, key: string, value: string, providers, myAddress: string) {
+  // Verify ownership first
+  const info = await getDomainInfo(domain);
+
+  if (!info.success || info.data.owner !== myAddress) {
+    throw new Error('You do not own this domain');
+  }
+
+  // Now safe to update
+  return await insertField(domain, key, value, providers);
+}
+```
+
+### 3. Batch Updates for Efficiency
+
+```typescript
+// Less efficient - 3 separate transactions, gas for each transaction.
+await insertField('alice.night', 'name', 'Alice', providers);
+await insertField('alice.night', 'bio', 'Developer', providers);
+await insertField('alice.night', 'twitter', '@alice', providers);
+
+// More efficient - single transaction, less gas.
+await addMultipleFields('alice.night', [
+  ['name', 'Alice'],
+  ['bio', 'Developer'],
+  ['twitter', '@alice'],
+], providers);
+```
+
+### 4. Handle Errors Gracefully
+
+```typescript
+async function updateFieldWithFeedback(domain: string, key: string, value: string, providers: PublicDataProviders) {
+  const result = await insertField(domain, key, value, providers);
+
+  if (result.success) {
+    showSuccessToast(`${key} updated!`);
+    return result.data.transactionId;
+  } else {
+    // Handle specific errors
+    switch (result.error.code) {
+      case 'NETWORK_ERROR':
+        showErrorToast('Network error. Please try again.');
+        break;
+      case 'DOMAIN_NOT_FOUND':
+        showErrorToast('Domain not found.');
+        break;
+      default:
+        showErrorToast(`Update failed: ${result.error.message}`);
+    }
+    return null;
+  }
+}
+```
+
+## Field Value Formats
+
+### Avatar URLs
+
+Avatars support multiple formats:
+
+```typescript
+// Standard URL
+await insertField('alice.night', 'avatar', 'https://example.com/avatar.png', providers);
+
+// IPFS
+await insertField('alice.night', 'avatar', 'ipfs://Qm123abc...', providers);
+
+// Midnight NFT Contract <contractAddress>:<tokenId> format
+await insertField('alice.night', 'avatar', '0200abc123...:42', providers);
+```
+
+### Social Media Handles
+
+```typescript
+// Twitter - with or without @
+await insertField('alice.night', 'twitter', '@alice', providers);
+await insertField('alice.night', 'twitter', 'alice', providers); // Both work
+
+// GitHub - username only
+await insertField('alice.night', 'github', 'alice', providers);
+
+// Website - include protocol
+await insertField('alice.night', 'website', 'https://alice.dev', providers);
+```
+
+## Troubleshooting
+
+**Transaction fails immediately**
+- Verify you own the domain
+- Check wallet balance (need funds for gas fee)
+- Ensure wallet is connected and unlocked
+
+**Field doesn't appear after update**
+- Wait for transaction confirmation (can take 10-30 seconds)
+- Refresh the page or re-query the domain
+- Check transaction succeeded by viewing on block explorer
+
+**"DOMAIN_NOT_FOUND" error**
+- Verify domain is correctly formatted: `alice.night`
+- Check domain actually exists (query with `getDomainInfo`)
+- Ensure you're on the correct network (TestNet vs MainNet)
+
+**Contact Support**
+- Midnames provides a 24/7 <a href= "mailto:support@midnames.com"> customer support email </a> service for further troubleshooting enquiries. 
+
+## Next Steps
+
+- Learn about [domain operations](/reference/operations/) for more advanced write operations
+- Explore the [Profile Widget](/reference/widget/) to display your updated fields
+- Read the [Domain Transfer Guide](/guides/transfer_domain/) to transfer domains
+
+Ready to customize your profile? Head over to [ns.midnames.com](https://ns.midnames.com) or integrate the SDK into your app!

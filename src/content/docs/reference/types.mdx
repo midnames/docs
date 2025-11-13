@@ -1,0 +1,545 @@
+---
+title: TypeScript Types
+description: Complete TypeScript type definitions for the Midnames SDK
+sidebar:
+  label: TypeScript Types
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Complete reference of TypeScript types, interfaces, and enums used in the Midnames SDK. All types are exported and available for import.
+
+## Core Types
+
+### Result pattern
+
+The SDK uses a `Result<T>` pattern for type-safe error handling. All SDK functions return a `Result` type.
+
+```typescript
+type Result<T, E = MidnamesError> =
+  | { success: true; data: T; error?: never }
+  | { success: false; data?: never; error: E };
+```
+
+**Usage:**
+
+```typescript
+import type { Result } from '@midnames/sdk';
+
+const result: Result<string> = await resolveDomain('alice.night');
+
+if (result.success) {
+  // TypeScript knows result.data is string
+  console.log(result.data);
+} else {
+  // TypeScript knows result.error is MidnamesError
+  console.error(result.error.message);
+}
+```
+
+## Domain Data Types
+
+### DomainInfo
+
+Information about domain ownership and resolver.
+
+```typescript
+interface DomainInfo {
+  owner: string;           // Wallet address of the domain owner
+  resolver: string;        // Contract address that resolves the domain
+  contractAddress?: string; // Parent contract address (optional)
+}
+```
+
+**Example:**
+
+```typescript
+import type { DomainInfo } from '@midnames/sdk';
+
+const info: DomainInfo = {
+  owner: 'mn_shield-cpk_test1abc...',
+  resolver: '0200def456...',
+  contractAddress: '020052aede...',
+};
+```
+
+### DomainSettings
+
+Configuration settings for a domain contract.
+
+```typescript
+interface DomainSettings {
+  coinColor: Uint8Array;  // 32-byte token identifier
+  domainCost: bigint;     // Cost to register subdomains (in smallest unit)
+}
+```
+
+**Example:**
+
+```typescript
+import type { DomainSettings } from '@midnames/sdk';
+
+const settings: DomainSettings = {
+  coinColor: new Uint8Array(32),
+  domainCost: BigInt(1000),
+};
+```
+
+### DomainProfileData
+
+Complete profile data including all fields and metadata.
+
+```typescript
+interface DomainProfileData {
+  fullDomain: string;              // Normalized domain name (e.g., "alice.night")
+  resolvedTarget: string | null;   // Target address or null if not set
+  info: DomainInfo | null;         // Ownership info or null if domain doesn't exist
+  fields: Map<string, string>;     // Custom fields as key-value pairs
+  settings: DomainSettings | null; // Domain settings or null if unavailable
+}
+```
+
+**Example:**
+
+```typescript
+import type { DomainProfileData } from '@midnames/sdk';
+
+const profile: DomainProfileData = {
+  fullDomain: 'alice.night',
+  resolvedTarget: 'mn_shield-cpk_test1...',
+  info: {
+    owner: 'mn_shield-cpk_test1...',
+    resolver: '0200abc...',
+  },
+  fields: new Map([
+    ['name', 'Alice Cooper'],
+    ['bio', 'Web3 Developer'],
+    ['twitter', '@alice'],
+  ]),
+  settings: {
+    coinColor: new Uint8Array(32),
+    domainCost: BigInt(0),
+  },
+};
+```
+
+### ParsedDomain
+
+Result of parsing a domain string into its components.
+
+```typescript
+interface ParsedDomain {
+  isValid: boolean;         // Whether the domain format is valid
+  domainName: string;       // The leftmost label (e.g., "alice" from "alice.night")
+  parentDomainPath: string; // Everything after the first label (e.g., "night")
+  fullDomain: string;       // The normalized full domain
+  depth: number;            // Number of labels excluding TLD
+}
+```
+
+**Example:**
+
+```typescript
+import type { ParsedDomain } from '@midnames/sdk/utils/domain';
+
+const parsed: ParsedDomain = {
+  isValid: true,
+  domainName: 'work',
+  parentDomainPath: 'id.alice.night',
+  fullDomain: 'work.id.alice.night',
+  depth: 3,
+};
+```
+
+## Error Types
+
+### MidnamesError
+
+Base error class for all SDK errors.
+
+```typescript
+class MidnamesError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly details?: unknown
+  );
+
+  name: 'MidnamesError';
+  message: string;
+  code: string;
+  details?: unknown;
+}
+```
+
+**Properties:**
+
+- `name` - Always `'MidnamesError'`
+- `message` - Human-readable error description
+- `code` - Machine-readable error code
+- `details` - Optional additional error context
+
+### NetworkError
+
+Network or connection-related errors.
+
+```typescript
+class NetworkError extends MidnamesError {
+  constructor(message: string, details?: unknown);
+
+  name: 'NetworkError';
+  code: 'NETWORK_ERROR';
+}
+```
+
+### ContractNotFoundError
+
+Contract address not found on-chain.
+
+```typescript
+class ContractNotFoundError extends MidnamesError {
+  constructor(contractAddress: string, details?: unknown);
+
+  name: 'ContractNotFoundError';
+  code: 'CONTRACT_NOT_FOUND';
+}
+```
+
+### DomainNotFoundError
+
+Domain doesn't exist or hasn't been registered.
+
+```typescript
+class DomainNotFoundError extends MidnamesError {
+  constructor(domain: string, details?: unknown);
+
+  name: 'DomainNotFoundError';
+  code: 'DOMAIN_NOT_FOUND';
+}
+```
+
+### InvalidDomainError
+
+Domain format is invalid.
+
+```typescript
+class InvalidDomainError extends MidnamesError {
+  constructor(domain: string, reason: string, details?: unknown);
+
+  name: 'InvalidDomainError';
+  code: 'INVALID_DOMAIN';
+}
+```
+
+### ProviderError
+
+Issue with the data provider.
+
+```typescript
+class ProviderError extends MidnamesError {
+  constructor(message: string, details?: unknown);
+
+  name: 'ProviderError';
+  code: 'PROVIDER_ERROR';
+}
+```
+
+**Error Code Reference:**
+
+| Code | Error Class | When it occurs |
+|------|-------------|----------------|
+| `NETWORK_ERROR` | `NetworkError` | Connection or network issues |
+| `CONTRACT_NOT_FOUND` | `ContractNotFoundError` | Contract doesn't exist on-chain |
+| `DOMAIN_NOT_FOUND` | `DomainNotFoundError` | Domain not registered |
+| `INVALID_DOMAIN` | `InvalidDomainError` | Domain format validation failed |
+| `PROVIDER_ERROR` | `ProviderError` | Data provider malfunction |
+
+## React Component Types
+
+### DomainProfileWidgetProps
+
+Props for the `DomainProfileWidget` React component.
+
+```typescript
+type DomainProfileWidgetProps = {
+  // Required
+  fullDomain: string;
+
+  // Provider
+  publicDataProvider?: PublicDataProvider;
+
+  // Layout & Styling
+  className?: string;
+  variant?: 'full' | 'compact' | 'inline' | 'minimal';
+  theme?: 'light' | 'dark' | 'auto';
+  borderRadius?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+
+  // Visibility Controls
+  showStatus?: boolean;
+  showBanner?: boolean;
+  showAvatar?: boolean;
+  showBio?: boolean;
+  showDomainInfo?: boolean;
+  showSocialLinks?: boolean;
+  showCopyButtons?: boolean;
+
+  // Field Selection
+  fields?: Array<'target' | 'owner' | 'resolver'>;
+  customFields?: string[];
+
+  // Event Handlers
+  onError?: (error: MidnamesError) => void;
+  onFieldClick?: (field: string, value: string) => void;
+  onCopySuccess?: (field: string, value: string) => void;
+
+  // Custom Rendering
+  renderActions?: (data: DomainProfileData | null) => React.ReactNode;
+};
+```
+
+**Example:**
+
+```typescript
+import type { DomainProfileWidgetProps } from '@midnames/sdk/react/DomainProfileWidget';
+
+const props: DomainProfileWidgetProps = {
+  fullDomain: 'alice.night',
+  variant: 'compact',
+  theme: 'dark',
+  showCopyButtons: true,
+  onCopySuccess: (field, value) => console.log(`Copied ${field}`),
+};
+```
+
+## Provider Types
+
+### ProviderConfig
+
+Configuration for creating a custom provider.
+
+```typescript
+interface ProviderConfig {
+  indexerUrl?: string;       // GraphQL endpoint URL
+  indexerWsUrl?: string;     // WebSocket endpoint URL
+  networkId?: NetworkId;     // Network to connect to
+}
+```
+
+**Example:**
+
+```typescript
+import type { ProviderConfig } from '@midnames/sdk';
+import { NetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+
+const config: ProviderConfig = {
+  indexerUrl: 'https://indexer.testnet-02.midnight.network/api/v1/graphql',
+  indexerWsUrl: 'wss://indexer.testnet-02.midnight.network/api/v1/graphql/ws',
+  networkId: NetworkId.TestNet,
+};
+```
+
+## External Types
+
+These types come from Midnight SDK peer dependencies:
+
+### PublicDataProvider
+
+```typescript
+import type { PublicDataProvider } from '@midnight-ntwrk/midnight-js-types';
+```
+
+Used for querying blockchain data.
+
+### ContractProviders
+
+```typescript
+import type { ContractProviders } from '@midnight-ntwrk/midnight-js-contracts';
+```
+
+Required for write operations (includes wallet connection).
+
+### NetworkId
+
+```typescript
+import { NetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+
+enum NetworkId {
+  Undeployed = 'undeployed',
+  TestNet = 'testnet',
+}
+```
+
+## Utility Type Helpers
+
+### Result Helpers
+
+```typescript
+// Create success result
+function success<T>(data: T): Result<T>;
+
+// Create failure result
+function failure<E>(error: E): Result<never, E>;
+
+// Pattern match on result
+function match<T, E, U>(
+  result: Result<T, E>,
+  patterns: {
+    success: (data: T) => U;
+    error: (error: E) => U;
+  }
+): U;
+
+// Transform success value
+function map<T, U, E>(
+  result: Result<T, E>,
+  fn: (data: T) => U
+): Result<U, E>;
+
+// Chain operations
+function flatMap<T, U, E>(
+  result: Result<T, E>,
+  fn: (data: T) => Result<U, E>
+): Result<U, E>;
+```
+
+**Example:**
+
+```typescript
+import { success, failure, match } from '@midnames/sdk';
+
+const result = success('alice.night');
+
+const message = match(result, {
+  success: (domain) => `Found: ${domain}`,
+  error: (err) => `Error: ${err.message}`,
+});
+
+console.log(message); // "Found: alice.night"
+```
+
+## Type Guards
+
+### Checking Result Success
+
+```typescript
+const result = await resolveDomain('alice.night');
+
+if (result.success) {
+  // TypeScript narrows type automatically
+  const address: string = result.data;
+} else {
+  const error: MidnamesError = result.error;
+}
+```
+
+### Checking Error Type
+
+```typescript
+import { DomainNotFoundError } from '@midnames/sdk';
+
+const result = await getDomainInfo('alice.night');
+
+if (!result.success) {
+  if (result.error instanceof DomainNotFoundError) {
+    console.log('Domain not found');
+  } else {
+    console.log('Other error:', result.error.code);
+  }
+}
+```
+
+## Generic Type Parameters
+
+### Custom Result Error Types
+
+```typescript
+import type { Result } from '@midnames/sdk';
+
+// Result with custom error type
+type MyResult<T> = Result<T, MyCustomError>;
+
+class MyCustomError extends Error {
+  constructor(public code: string) {
+    super();
+  }
+}
+```
+
+## Import Patterns
+
+### Named Imports
+
+```typescript
+// Core types
+import type { DomainInfo, DomainProfileData, DomainSettings } from '@midnames/sdk';
+
+// Error types
+import { MidnamesError, DomainNotFoundError, NetworkError } from '@midnames/sdk';
+
+// Result utilities
+import { success, failure, match, map } from '@midnames/sdk';
+
+// Domain utilities
+import type { ParsedDomain } from '@midnames/sdk/utils/domain';
+
+// React types
+import type { DomainProfileWidgetProps } from '@midnames/sdk/react/DomainProfileWidget';
+```
+
+### Default Imports
+
+```typescript
+// React components
+import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+```
+
+## Type-Safe Patterns
+
+### Type guards for domain validation
+
+```typescript
+import { parseFullDomain, isValidDomainName } from '@midnames/sdk';
+
+function validateDomain(input: string): input is string {
+  const parsed = parseFullDomain(input);
+  return parsed.isValid && isValidDomainName(parsed.domainName);
+}
+
+// Usage
+if (validateDomain(userInput)) {
+  // userInput is guaranteed to be a valid domain
+  await resolveDomain(userInput);
+}
+```
+
+### Exhaustive error handling
+
+```typescript
+function handleError(error: MidnamesError): string {
+  switch (error.code) {
+    case 'DOMAIN_NOT_FOUND':
+      return 'Domain not found';
+    case 'NETWORK_ERROR':
+      return 'Network error';
+    case 'INVALID_DOMAIN':
+      return 'Invalid domain format';
+    case 'CONTRACT_NOT_FOUND':
+      return 'Contract not found';
+    case 'PROVIDER_ERROR':
+      return 'Provider error';
+    default:
+      // TypeScript ensures this is never reached
+      const _exhaustive: never = error.code;
+      return 'Unknown error';
+  }
+}
+```
+
+## Next Steps
+
+- Review [domain resolution](/reference/resolve/) for using these types in practice
+- Explore [utility functions](/reference/utils/) for type-safe helpers
+- Check the [error handling guide](/reference/types/#error-types) for error management patterns
+
+All types are fully documented with JSDoc comments in the source code for IDE autocomplete and inline documentation.

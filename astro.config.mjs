@@ -20,16 +20,38 @@ export default defineConfig({
           icon: "github",
           label: "GitHub",
           href: "https://github.com/midnames/docs",
+        }, {
+          icon: "twitter",
+          label: "Twitter",
+          href: "https://x.com/midnames"
         },
+        {
+          icon: "linkedin",
+          label: "LinkedIn",
+          href: "https://www.linkedin.com/company/midnames/"
+        }
+
       ],
       sidebar: [
         {
           label: "Guides",
-          autogenerate: { directory: "guides" },
+          items: [
+            {label: "Quickstart", slug: "guides/quickstart"},
+            {label: "Buy Domains", slug: "guides/buy_domain"},
+            {label: "Transfer .night domains", slug: "guides/transfer_domain"},
+            {label: "Update domain fields", slug: "guides/update_fields"},
+            {label: "MNS domain specification", slug: "guides/valid_domains"}
+          ]
         },
         {
           label: "SDK Reference",
-          autogenerate: { directory: "reference" },
+          items: [
+            {label: "Domain Operations", slug: "reference/operations"},
+            {label: "Domain Resolution", slug: "reference/resolve"},
+            {label: "TypeScript Types", slug: "reference/types"},
+            {label: "Utility Functions", slug: "reference/utils"},
+            {label: "Profile Widget", slug: "reference/widget"}
+          ]
         },
       ],
       plugins: [

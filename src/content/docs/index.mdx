@@ -8,7 +8,7 @@ hero:
     file: ../../assets/houston.webp
   actions:
     - text: Read the docs
-      link: /guides/buy_domain/
+      link: /guides/quickstart/
       icon: right-arrow
 ---
 
@@ -16,9 +16,24 @@ import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
   <LinkCard
+    title="Quick Start"
+    description="Get started with the Midnames SDK in 5 minutes. Perfect for DApp and wallet developers."
+    href="/guides/quickstart/"
+  />
+  <LinkCard
     title="Buy a .night domain"
-    description="Get your own .night domain to represent your identity on the Midnight Network."
+    description="Get your own .night domain to store your identity on the Midnight Network."
     href="/guides/buy_domain/"
+  />
+  <LinkCard
+    title="Domain Resolution"
+    description="Learn how to resolve .night domains to addresses and query profile information using the SDK."
+    href="/reference/resolve/"
+  />
+  <LinkCard
+    title="Profile Widget"
+    description="Display interactive domain profiles in your DApp with the pre-built widget component."
+    href="/reference/widget/"
   />
   <LinkCard
     title="Transfer a .night domain"
@@ -27,12 +42,17 @@ import { CardGrid, LinkCard } from "@astrojs/starlight/components";
   />
   <LinkCard
     title="Update fields in a domain"
-    description="Learn how to update the fields associated with your .night domain."
+    description="Learn how to update profile information, social links, and custom metadata."
     href="/guides/update_fields/"
   />
   <LinkCard
+    title="Domain Operations"
+    description="Complete guide to write operations: manage fields, transfer ownership, and register subdomains."
+    href="/reference/operations/"
+  />
+  <LinkCard
     title="MNS Specification"
-    description="Understand the rules and specifications for valid .night domains."
+    description="Understand the rules and specifications for valid .night domain names."
     href="/guides/valid_domains/"
-  ></LinkCard>
+  />
 </CardGrid>
