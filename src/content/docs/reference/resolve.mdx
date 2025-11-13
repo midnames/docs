@@ -9,8 +9,6 @@ import { Aside, Code, Tabs, TabItem } from "@astrojs/starlight/components";
 
 Learn how to resolve `.night` domains to their target addresses using the Midnames SDK. Domain resolution is the core functionality that allows you to translate human-readable names into blockchain addresses.
 
-## Overview
-
 The SDK provides several functions for reading domain data:
 
 - **`resolveDomain()`** - Resolve a domain to its target address
@@ -31,11 +29,29 @@ npm install @midnames/sdk
 
 The `resolveDomain()` function returns the target address that a domain points to.
 
+**Signature:**
+
+```typescript
+async function resolveDomain(domain: string, options?: ResolveOptions): Promise<Result<string>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to resolve (e.g., "alice.night")
+- `options` (optional) - Configuration object:
+  - `provider` - Custom provider instance for connecting to a specific network
+
+**Returns:**
+
+A `Result<string>` containing either:
+- `success: true` with `data` being the resolved target address (CoinPublicKey or shielded address)
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { resolveDomain } from '@midnames/sdk';
 
 // Resolve a domain
-const result: = await resolveDomain('alice.night');
+const result = await resolveDomain('alice.night');
 
 if (result.success) {
   console.log('Target address:', result.data);
@@ -74,6 +90,24 @@ const result = await resolveDomain("alice.night", { provider });
 
 ### Get ownership and resolver details
 
+**Signature:**
+
+```typescript
+async function getDomainInfo(domain: string, options?: ResolveOptions): Promise<Result<DomainInfo>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to query
+- `options` (optional) - Configuration object:
+  - `provider` - Custom provider instance for connecting to a specific network
+
+**Returns:**
+
+A `Result<DomainInfo>` containing either:
+- `success: true` with `data` being the domain ownership information
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { getDomainInfo } from "@midnames/sdk";
 
@@ -102,6 +136,24 @@ interface DomainInfo {
 ### Fetch all domain data in one call
 
 The `getDomainProfile()` function aggregates all domain information including custom fields:
+
+**Signature:**
+
+```typescript
+async function getDomainProfile(domain: string, options?: ResolveOptions): Promise<Result<DomainProfileData>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to query
+- `options` (optional) - Configuration object:
+  - `provider` - Custom provider instance for connecting to a specific network
+
+**Returns:**
+
+A `Result<DomainProfileData>` containing either:
+- `success: true` with `data` being the complete domain profile including target, ownership info, custom fields, and settings
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { getDomainProfile } from "@midnames/sdk";
@@ -147,7 +199,6 @@ These fields are recognized by the MidNames ecosystem:
 | `name`     | Display name                             | `"Alice"`                 |
 | `bio`      | Short biography                          | `"Web3 developer"`        |
 | `avatar`   | Midnight Contract Address or IPFS or URL | `see below`               |
-| `banner`   | Banner image URL                         | `"https://..."`           |
 | `website`  | Personal website                         | `"alice.dev"`             |
 | `twitter`  | Twitter handle                           | `"@alice"`                |
 | `github`   | GitHub username                          | `"alice"`                 |
@@ -178,6 +229,24 @@ If a contract-based avatar is provided, **Starlight automatically resolves** the
 
 ### Retrieve custom fields only
 
+**Signature:**
+
+```typescript
+async function getDomainFields(contractAddress: string, options?: ResolveOptions): Promise<Result<Map<string, string>>>
+```
+
+**Parameters:**
+
+- `contractAddress` (string) - The contract address of the domain (in hex format starting with "0200...")
+- `options` (optional) - Configuration object:
+  - `provider` - Custom provider instance for connecting to a specific network
+
+**Returns:**
+
+A `Result<Map<string, string>>` containing either:
+- `success: true` with `data` being a Map of field names to their string values
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { getDomainFields } from "@midnames/sdk";
 
@@ -196,6 +265,24 @@ if (result.success) {
 ## Get Domain Settings
 
 ### Query subdomain pricing and token type
+
+**Signature:**
+
+```typescript
+async function getDomainSettings(contractAddress: string, options?: ResolveOptions): Promise<Result<DomainSettings>>
+```
+
+**Parameters:**
+
+- `contractAddress` (string) - The contract address of the domain (in hex format starting with "0200...")
+- `options` (optional) - Configuration object:
+  - `provider` - Custom provider instance for connecting to a specific network
+
+**Returns:**
+
+A `Result<DomainSettings>` containing either:
+- `success: true` with `data` being the domain settings including accepted token type and subdomain registration cost
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { getDomainSettings } from "@midnames/sdk";

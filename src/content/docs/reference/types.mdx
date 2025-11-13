@@ -11,9 +11,9 @@ Complete reference of TypeScript types, interfaces, and enums used in the Midnam
 
 ## Core Types
 
-### Result<T,E>
+### Result pattern
 
-The SDK uses a `Result` pattern for type-safe error handling. All async functions return a `Result` type.
+The SDK uses a `Result<T>` pattern for type-safe error handling. All SDK functions return a `Result` type.
 
 ```typescript
 type Result<T, E = MidnamesError> =
@@ -540,6 +540,6 @@ function handleError(error: MidnamesError): string {
 
 - Review [domain resolution](/reference/resolve/) for using these types in practice
 - Explore [utility functions](/reference/utils/) for type-safe helpers
-- Check the [error handling guide](/reference/errors/) for error management patterns
+- Check the [error handling guide](/reference/types/#error-types) for error management patterns
 
 All types are fully documented with JSDoc comments in the source code for IDE autocomplete and inline documentation.

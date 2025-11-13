@@ -15,8 +15,6 @@ Learn how to perform write operations on `.night` domains, including field manag
   owner or parent domain owner)
 </Aside>
 
-## Overview
-
 The SDK provides the following write operations:
 
 **Field Management:**
@@ -56,7 +54,7 @@ import { leafContractInstance } from "@midnames/sdk";
 // Your wallet setup (example using Midnight wallet API)
 const providers: ContractProviders<typeof leafContractInstance> = {
   privateStateProvider: myPrivateStateProvider,
-  publicDataProvider: myPublicDataProvider,
+  ContractProviders: myContractProviders,
   walletProvider: myWalletProvider,
   zkConfigProvider: myZkConfigProvider,
 };
@@ -86,8 +84,21 @@ Add or update a single field in your domain: {" "}
 **Signature:**
 
 ```typescript
-async function insertField(domain: string, key: string, value: string, providers: PublicDataProviders): Promise<Return<foo>>
+async function insertField(domain: string, key: string, value: string, providers: ContractProviders): Promise<Result<{ transactionId: string}>>
 ```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to modify (e.g., "alice.night")
+- `key` (string) - The field name/key to insert or update (e.g., "twitter", "bio")
+- `value` (string) - The field value to set
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string}>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { insertField } from "@midnames/sdk";
@@ -142,8 +153,20 @@ Add up to 10 fields in a single transaction (more efficient than multiple `inser
 **Signature:**
 
 ```typescript
-async function addMultipleFields(domain: string, fields: Array<[string, string]>, providers: PublicDataProviders): Promise<Return<foo>>
+async function addMultipleFields(domain: string, fields: Array<[string, string]>, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to modify
+- `fields` (Array[(string, string)]) - Array of [key, value] tuples, up to 10 entries
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { addMultipleFields } from "@midnames/sdk";
@@ -183,8 +206,21 @@ Remove a field from your domain: {" "}
 **Signature:**
 
 ```typescript
-async function clearField(domain: string, key: string, value: string, providers: PublicDataProviders) Promise<Return<foo>>
+async function clearField(domain: string, key: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to modify
+- `key` (string) - The field name/key to remove
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { clearField } from "@midnames/sdk";
 
@@ -206,11 +242,23 @@ if (result.success) {
 
 Remove all custom fields from your domain: {" "}
 
-**Signature:** 
+**Signature:**
 
 ```typescript
-async function clearAllFields(domain: string, providers: PublicDataProviders) Promise<Return<foo>>
+async function clearAllFields(domain: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to modify
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { clearAllFields } from "@midnames/sdk";
 
@@ -236,8 +284,21 @@ Change where your domain resolves to. The target can be either a wallet address 
 **Signature:**
 
 ```typescript
-async function updateDomainTarget(domain: string, target: string, providers: PublicDataProviders) Promise<Return<foo>>
+async function updateDomainTarget(domain: string, target: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
+
+**Parameters:**
+
+- `domain` (string) - The .night domain name to modify
+- `target` (string) - The target address (wallet address starting with "mn_" or contract address starting with "0200" or "0x")
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { updateDomainTarget } from "@midnames/sdk";
 
@@ -276,8 +337,21 @@ Transfer ownership using the parent domain's contract: {" "}
 **Signature:**
 
 ```typescript
-async function transferDomainOwnership(parent: string, subdomain: string, new_owner: string, providers: PublicDataProviders) Promise<Return<foo>>
+async function transferDomainOwnership(parent: string, subdomain: string, new_owner: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
+
+**Parameters:**
+
+- `parent` (string) - The parent domain name (e.g., "night" for "alice.night")
+- `subdomain` (string) - The subdomain name without the parent (e.g., "alice")
+- `new_owner` (string) - The wallet address of the new owner
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { transferDomainOwnership } from "@midnames/sdk";
@@ -313,9 +387,20 @@ Transfer ownership using the domain's own contract: {" "}
 **Signature:**
 
 ```typescript
-async function changeDomainOwner(domain: string, new_owner: string, providers: PublicDataProviders) Promise<Return<foo>>
+async function changeDomainOwner(domain: string, new_owner: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
 ```
 
+**Parameters:**
+
+- `domain` (string) - The full domain name to transfer (e.g., "alice.night")
+- `new_owner` (string) - The wallet address of the new owner
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { changeDomainOwner } from "@midnames/sdk";
@@ -342,7 +427,27 @@ const result = await changeDomainOwner(
 
 ### Register Subdomain (Free)
 
-As a domain owner, you can register subdomains for free:
+As a domain owner, you can register subdomains for free: {" "}
+
+**Signature:**
+
+```typescript
+async function registerDomainFor(parent_domain: string, target_owner: string, subdomain: string, resolver: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters:**
+
+- `parent_domain` (string) - The parent domain you own (e.g., "alice.night")
+- `target_owner` (string) - The wallet address of the subdomain owner
+- `subdomain` (string) - The subdomain name to register (e.g., "work")
+- `resolver` (string) - The resolver contract address
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { registerDomainFor } from "@midnames/sdk";
@@ -371,7 +476,28 @@ const result = await registerDomainFor(
 
 ### Buy Subdomain (Paid)
 
-Purchase a subdomain when you're not the parent owner:
+Purchase a subdomain when you're not the parent owner: {" "}
+
+**Signature:**
+
+```typescript
+async function buyDomainFor(parent_domain: string, subdomain_owner: string, name: string, resolver: string, tokens: bigint, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters:**
+
+- `parent_domain` (string) - The parent domain (e.g., "alice.night")
+- `subdomain_owner` (string) - The wallet address of the subdomain owner
+- `name` (string) - The subdomain name to purchase (e.g., "blog")
+- `resolver` (string) - The resolver contract address
+- `tokens` (bigint) - Payment amount that must match the parent domain's `domainCost` setting
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { buyDomainFor } from "@midnames/sdk";
@@ -399,8 +525,25 @@ The payment amount must match the `domainCost` setting of the parent domain.
 ## Domain Settings
 
 ### Update Subdomain Pricing
-
 Change the cost for others to buy subdomains under your domain:
+
+**Signature:**
+
+```typescript
+async function updateDomainCost(domain: string, new_cost: bigint, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The domain name to update pricing for
+- `new_cost` (bigint) - The new cost in the smallest token unit (use `BigInt(0)` for free)
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { updateDomainCost } from "@midnames/sdk";
@@ -435,6 +578,24 @@ await updateDomainCost("premium.alice.night", BigInt(100000), providers);
 
 Change which token type is accepted for subdomain purchases:
 
+**Signature:**
+
+```typescript
+async function updateDomainColor(domain: string, colorBytes: Uint8Array, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The domain name to update token type for
+- `colorBytes` (Uint8Array) - A 32-byte Uint8Array representing the token identifier
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
+
 ```typescript
 import { updateDomainColor } from "@midnames/sdk";
 
@@ -457,7 +618,26 @@ const result = await updateDomainColor("alice.night", colorBytes, providers);
 
 ### Set Domain Resolver
 
-Update the resolver contract for a subdomain:
+Update the resolver contract for a subdomain: {" "}
+
+**Signature:**
+
+```typescript
+async function setDomainResolver(domain: string, subdomain_name: string, resolver: string, providers: ContractProviders): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters:**
+
+- `domain` (string) - The parent domain name (e.g., "alice.night")
+- `subdomain_name` (string) - The subdomain name without the parent (e.g., "work")
+- `resolver` (string) - The new resolver contract address
+- `providers` (ContractProviders) - Wallet and provider instances for transaction signing
+
+**Returns:**
+
+A `Result<{ transactionId: string }>` containing either:
+- `success: true` with `data` containing the transaction details including `transactionId`
+- `success: false` with an `error` object containing the error details
 
 ```typescript
 import { setDomainResolver } from "@midnames/sdk";
@@ -671,4 +851,4 @@ await setupDomainProfile("alice.night", providers);
 
 - Learn about [domain resolution](/reference/resolve/) for reading domain data
 - Explore [utility functions](/reference/utils/) for domain validation and formatting
-- Check the [error handling guide](/reference/errors/) for comprehensive error management
+- Check the [error handling guide](/reference/types/#error-types) for comprehensive error management
