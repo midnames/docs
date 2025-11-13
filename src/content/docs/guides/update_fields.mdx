@@ -26,20 +26,19 @@ Domain fields are key-value pairs stored in your domain's contract. They allow y
 
 These fields are recognized across the Midnames ecosystem:
 
-| Field      | Purpose                          | Example                   |
-| ---------- | -------------------------------- | ------------------------- |
-| `name`     | Display name                     | `"Alice Cooper"`          |
-| `bio`      | Short biography                  | `"Web3 Developer"`        |
-| `avatar`   | Profile picture URL              | `"https://..."`           |
-| `banner`   | Banner image URL                 | `"https://..."`           |
-| `website`  | Personal website                 | `"https://alice.dev"`     |
-| `twitter`  | Twitter handle                   | `"@alice"` or `"alice"`   |
-| `github`   | GitHub username                  | `"alice"`                 |
-| `location` | Location                         | `"San Francisco"`         |
-| `epk`      | Encryption public key            | `"mn_shield-epk_test..."` |
-| `email`    | Email address                    | `"alice@example.com"`     |
-| `discord`  | Discord handle                   | `"alice#1234"`            |
-| `telegram` | Telegram username                | `"@alice"`                |
+| Field      | Purpose                            | Example                   |
+| ---------- | -----------------------------------| ------------------------- |
+| `name`     | Display name                       | `"Alice Cooper"`          |
+| `bio`      | Short biography                    | `"Web3 Developer"`        |
+| `avatar`   | HTTPS URL or Contract Address/IPFS |  see [Avatar Types](/reference/resolve/#avatartypes)          |
+| `website`  | Personal website                   | `"https://alice.dev"`     |
+| `twitter`  | Twitter handle                     | `"@alice"` or `"alice"`   |
+| `github`   | GitHub username                    | `"alice"`                 |
+| `location` | Location                           | `"San Francisco"`         |
+| `epk`      | Encryption public key              | `"mn_shield-epk_test..."` |
+| `email`    | Email address                      | `"alice@example.com"`     |
+| `discord`  | Discord handle                     | `"alice#1234"`            |
+| `telegram` | Telegram username                  | `"@alice"`                |
 
 <Aside type="note">
   You can also create custom fields for application-specific data. There's no limit to the field names you can use.
@@ -51,7 +50,8 @@ To update fields, you need:
 
 1. **Lace Wallet** installed and funded ([Get Lace](https://docs.midnight.network/develop/tutorial/using/chrome-ext))
 2. **Domain ownership** - You must own the domain to update its fields
-3. **SDK setup** with wallet providers (see [Domain Operations](/reference/operations/#prerequisites))
+3. **Funded wallet** for blockchain transactions
+4. **SDK setup** with wallet providers (see [Domain Operations](/reference/operations/#prerequisites))
 
 ## Update a Single Field
 
@@ -99,7 +99,7 @@ await insertField('alice.night', 'epk', 'mn_shield-epk_test1...', providers);
 
 ## Update Multiple Fields
 
-For efficiency, update multiple fields in a single transaction:
+For efficiency, Midnames SDK provides batch addition for multiple fields in a single transaction:
 
 ```typescript
 import { addMultipleFields } from '@midnames/sdk';
@@ -128,7 +128,7 @@ await setupProfile('alice.night', providers);
 ```
 
 <Aside type="tip">
-  **Maximum 10 fields per transaction.** If you need to set more, split them into multiple `addMultipleFields()` calls.
+  **Maximum 10 fields per transaction.** If you need to set more, split them into multiple `addMultipleFields()` calls. Take a look at [Best Practices](/guides/update_fields/#best-practices) for more tips.
 </Aside>
 
 ## Remove Fields
@@ -304,10 +304,10 @@ You can also update fields through the Midnames web interface at [ns.midnames.co
 Stick to standard field names when possible for maximum compatibility:
 
 ```typescript
-// ✅ Good - recognized by all MNS apps
+// Good - recognized by all MNS apps. Easy to remember.
 await insertField('alice.night', 'twitter', '@alice', providers);
 
-// ⚠️ Less ideal - custom field name
+// Less ideal - custom field name. Hard to remember or query.
 await insertField('alice.night', 'twitter_handle', '@alice', providers);
 ```
 
@@ -332,12 +332,12 @@ async function safeUpdateField(domain: string, key: string, value: string, provi
 ### 3. Batch Updates for Efficiency
 
 ```typescript
-// ❌ Less efficient - 3 separate transactions
+// Less efficient - 3 separate transactions, gas for each transaction.
 await insertField('alice.night', 'name', 'Alice', providers);
 await insertField('alice.night', 'bio', 'Developer', providers);
 await insertField('alice.night', 'twitter', '@alice', providers);
 
-// ✅ More efficient - single transaction
+// More efficient - single transaction, less gas.
 await addMultipleFields('alice.night', [
   ['name', 'Alice'],
   ['bio', 'Developer'],
@@ -348,7 +348,7 @@ await addMultipleFields('alice.night', [
 ### 4. Handle Errors Gracefully
 
 ```typescript
-async function updateFieldWithFeedback(domain: string, key: string, value: string, providers) {
+async function updateFieldWithFeedback(domain: string, key: string, value: string, providers: PublicDataProviders) {
   const result = await insertField(domain, key, value, providers);
 
   if (result.success) {
@@ -384,10 +384,7 @@ await insertField('alice.night', 'avatar', 'https://example.com/avatar.png', pro
 // IPFS
 await insertField('alice.night', 'avatar', 'ipfs://Qm123abc...', providers);
 
-// IPFS Gateway
-await insertField('alice.night', 'avatar', 'https://ipfs.io/ipfs/Qm123abc...', providers);
-
-// Midnight NFT Contract (contractAddress:tokenId)
+// Midnight NFT Contract <contractAddress>:<tokenId> format
 await insertField('alice.night', 'avatar', '0200abc123...:42', providers);
 ```
 
@@ -409,7 +406,7 @@ await insertField('alice.night', 'website', 'https://alice.dev', providers);
 
 **Transaction fails immediately**
 - Verify you own the domain
-- Check wallet balance (need funds for gas)
+- Check wallet balance (need funds for gas fee)
 - Ensure wallet is connected and unlocked
 
 **Field doesn't appear after update**
@@ -422,9 +419,12 @@ await insertField('alice.night', 'website', 'https://alice.dev', providers);
 - Check domain actually exists (query with `getDomainInfo`)
 - Ensure you're on the correct network (TestNet vs MainNet)
 
+**Contact Support**
+- Midnames provides a 24/7 <a href= "mailto:support@midnames.com"> customer support email </a> service for further troubleshooting enquiries. 
+
 ## Next Steps
 
-- Learn about [domain operations](/reference/operations/) for more write operations
+- Learn about [domain operations](/reference/operations/) for more advanced write operations
 - Explore the [Profile Widget](/reference/widget/) to display your updated fields
 - Read the [Domain Transfer Guide](/guides/transfer_domain/) to transfer domains
 

@@ -51,7 +51,7 @@ Complete API documentation for the Midnames SDK. Learn how to resolve domains, m
 
 ## Quick Links
 
-- **New to the SDK?** Start with the [Quick Start Guide](/guides/quickstart/)
+- **New to the SDK?** Start with the [Quick Start Guide](/guides/a_quickstart/)
 - **Need examples?** Check out the code examples in each reference page
 - **Looking for guides?** Visit the [Guides section](/guides/)
 
@@ -70,19 +70,19 @@ npm install @midnames/sdk react react-dom lucide-react
 ## Basic Usage
 
 ```typescript
-import { resolveDomain, getDomainProfile } from '@midnames/sdk';
+import { resolveDomain, getDomainProfile } from "@midnames/sdk";
 
 // Resolve a domain
-const result = await resolveDomain('alice.night');
+const result = await resolveDomain("alice.night");
 if (result.success) {
-  console.log('Address:', result.data);
+  console.log("Address:", result.data);
 }
 
 // Get full profile
-const profile = await getDomainProfile('alice.night');
+const profile = await getDomainProfile("alice.night");
 if (profile.success) {
-  console.log('Name:', profile.data.fields.get('name'));
-  console.log('Bio:', profile.data.fields.get('bio'));
+  console.log("Name:", profile.data.fields.get("name"));
+  console.log("Bio:", profile.data.fields.get("bio"));
 }
 ```
 

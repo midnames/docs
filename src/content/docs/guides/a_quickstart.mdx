@@ -21,9 +21,9 @@ Midnames SDK is a TypeScript library for integrating the Midnight Name Service (
 - **Manage** domain fields, ownership, and settings (with wallet integration)
 
 <Aside type="tip">
-  **Perfect for:**
-  - DApp developers adding human-readable names
-  - Wallet developers building name resolution features
+  **Perfect for:** 
+  - DApp developers adding human-readable names 
+  - Wallet developers building name resolution features 
   - Anyone building on the Midnight Network
 </Aside>
 
@@ -46,15 +46,15 @@ Midnames SDK is a TypeScript library for integrating the Midnight Name Service (
 2. **Import and start using**
 
    ```typescript
-   import { resolveDomain } from '@midnames/sdk';
+   import { resolveDomain } from "@midnames/sdk";
 
-   const result = await resolveDomain('alice.night');
+   const result = await resolveDomain("alice.night");
    console.log(result.data); // Address or contract
    ```
 
 </Steps>
 
-That's it! The SDK works out of the box with sensible defaults.
+That's it! The SDK is now ready for development purposes.
 
 ## Basic Examples
 
@@ -63,20 +63,20 @@ That's it! The SDK works out of the box with sensible defaults.
 Translate a `.night` domain to its target address:
 
 ```typescript
-import { resolveDomain } from '@midnames/sdk';
+import { resolveDomain } from "@midnames/sdk";
 
 async function resolveUserDomain(domain: string) {
   const result = await resolveDomain(domain);
 
   if (result.success) {
-    console.log('Resolved to:', result.data);
+    console.log("Resolved to:", result.data);
     // => "mn_shield-cpk_test1..." or "0200..."
   } else {
-    console.error('Resolution failed:', result.error.message);
+    console.error("Resolution failed:", result.error.message);
   }
 }
 
-await resolveUserDomain('alice.night');
+await resolveUserDomain("alice.night");
 ```
 
 ### Example 2: Get Domain Profile
@@ -84,29 +84,29 @@ await resolveUserDomain('alice.night');
 Fetch complete profile data including fields and metadata:
 
 ```typescript
-import { getDomainProfile } from '@midnames/sdk';
+import { getDomainProfile } from "@midnames/sdk";
 
 async function fetchProfile(domain: string) {
   const result = await getDomainProfile(domain);
 
   if (!result.success) {
-    console.error('Error:', result.error.message);
+    console.error("Error:", result.error.message);
     return;
   }
 
   const profile = result.data;
 
-  console.log('Domain:', profile.fullDomain);
-  console.log('Owner:', profile.info?.owner);
-  console.log('Target:', profile.resolvedTarget);
+  console.log("Domain:", profile.fullDomain);
+  console.log("Owner:", profile.info?.owner);
+  console.log("Target:", profile.resolvedTarget);
 
   // Access custom fields
-  console.log('Name:', profile.fields.get('name'));
-  console.log('Bio:', profile.fields.get('bio'));
-  console.log('Twitter:', profile.fields.get('twitter'));
+  console.log("Name:", profile.fields.get("name"));
+  console.log("Bio:", profile.fields.get("bio"));
+  console.log("Twitter:", profile.fields.get("twitter"));
 }
 
-await fetchProfile('alice.night');
+await fetchProfile("alice.night");
 ```
 
 ### Example 3: Display Profile Widget (React)
@@ -114,8 +114,8 @@ await fetchProfile('alice.night');
 Show a beautiful profile card with zero configuration:
 
 ```tsx
-import '@midnames/sdk/styles.css';
-import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+import "@midnames/sdk/styles.css";
+import { DomainProfileWidget } from "@midnames/sdk/react/DomainProfileWidget";
 
 function ProfilePage() {
   return (
@@ -128,6 +128,7 @@ function ProfilePage() {
 ```
 
 That's all you need! The widget automatically:
+
 - Fetches domain data
 - Displays avatar, bio, and social links
 - Shows ownership information
@@ -140,12 +141,12 @@ That's all you need! The widget automatically:
 #### Display user names instead of addresses
 
 ```typescript
-import { resolveDomain } from '@midnames/sdk';
+import { resolveDomain } from "@midnames/sdk";
 
 // In your transaction UI
 async function displayRecipient(addressOrDomain: string) {
   // If it looks like a domain, resolve it
-  if (addressOrDomain.endsWith('.night')) {
+  if (addressOrDomain.endsWith(".night")) {
     const result = await resolveDomain(addressOrDomain);
     if (result.success) {
       return {
@@ -162,7 +163,7 @@ async function displayRecipient(addressOrDomain: string) {
 }
 
 // Usage
-const recipient = await displayRecipient('alice.night');
+const recipient = await displayRecipient("alice.night");
 console.log(`Sending to ${recipient.displayName} (${recipient.address})`);
 ```
 
@@ -175,7 +176,7 @@ While the SDK doesn't provide direct reverse resolution, you can implement it by
 #### Autocomplete domain search
 
 ```typescript
-import { getDomainInfo, normalizeDomain } from '@midnames/sdk';
+import { getDomainInfo, normalizeDomain } from "@midnames/sdk";
 
 async function isDomainAvailable(input: string): Promise<boolean> {
   const domain = normalizeDomain(input);
@@ -186,14 +187,14 @@ async function isDomainAvailable(input: string): Promise<boolean> {
 }
 
 // Usage
-const available = await isDomainAvailable('alice');
-console.log(available ? 'Available!' : 'Taken');
+const available = await isDomainAvailable("alice");
+console.log(available ? "Available!" : "Taken");
 ```
 
 #### Show domain profile in wallet
 
 ```tsx
-import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+import { DomainProfileWidget } from "@midnames/sdk/react/DomainProfileWidget";
 
 function WalletContactCard({ domain }: { domain: string }) {
   return (
@@ -211,58 +212,58 @@ function WalletContactCard({ domain }: { domain: string }) {
 
 ## Error Handling
 
-All SDK functions return a `Result` type for type-safe error handling:
+All SDK functions implement a `Result` type for type-safe error handling, ensuring developers write clean, maintainable & predictable code:
 
 ```typescript
-import { resolveDomain } from '@midnames/sdk';
+import { resolveDomain } from "@midnames/sdk";
 
-const result = await resolveDomain('alice.night');
+const result = await resolveDomain("alice.night");
 
 if (result.success) {
   // Type: string (the resolved address)
-  console.log('Success:', result.data);
+  console.log("Success:", result.data);
 } else {
   // Type: MidnamesError
-  console.error('Error:', result.error);
-  console.error('Code:', result.error.code);
-  console.error('Message:', result.error.message);
+  console.error("Error:", result.error);
+  console.error("Code:", result.error.code);
+  console.error("Message:", result.error.message);
 }
 ```
 
 **Common error codes:**
 
-| Code | Meaning | Action |
-|------|---------|--------|
-| `DOMAIN_NOT_FOUND` | Domain doesn't exist | Show "Available" UI |
-| `INVALID_DOMAIN` | Invalid format | Show validation error |
-| `NETWORK_ERROR` | Connection failed | Retry or show offline UI |
-| `CONTRACT_NOT_FOUND` | Contract not deployed | Handle as not found |
+| Code                 | Meaning               | Action                   |
+| -------------------- | --------------------- | ------------------------ |
+| `DOMAIN_NOT_FOUND`   | Domain doesn't exist  | Show "Available" UI      |
+| `INVALID_DOMAIN`     | Invalid format        | Show validation error    |
+| `NETWORK_ERROR`      | Connection failed     | Retry or show offline UI |
+| `CONTRACT_NOT_FOUND` | Contract not deployed | Handle as not found      |
 
 ## Advanced Configuration
 
 ### Custom Provider
 
-By default, the SDK connects to Midnight TestNet. You can customize this:
+By default, the SDK connects to Midnight TestNet. The SDK allows developers to easily customize his prefered provider:
 
 ```typescript
-import { createDefaultProvider, resolveDomain } from '@midnames/sdk';
-import { NetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { createDefaultProvider, resolveDomain } from "@midnames/sdk";
+import { NetworkId } from "@midnight-ntwrk/midnight-js-network-id";
 
 // Create custom provider
 const provider = createDefaultProvider({
-  indexerUrl: 'https://your-indexer.example.com/api/v1/graphql',
-  indexerWsUrl: 'wss://your-indexer.example.com/api/v1/graphql/ws',
+  indexerUrl: "https://your-indexer.example.com/api/v1/graphql",
+  indexerWsUrl: "wss://your-indexer.example.com/api/v1/graphql/ws",
   networkId: NetworkId.TestNet,
 });
 
 // Use it
-const result = await resolveDomain('alice.night', { provider });
+const result = await resolveDomain("alice.night", { provider });
 ```
 
 ### Set Default Provider Globally
 
 ```typescript
-import { setDefaultProvider, createDefaultProvider } from '@midnames/sdk';
+import { setDefaultProvider, createDefaultProvider } from "@midnames/sdk";
 
 // Set once at app initialization
 const provider = createDefaultProvider();
@@ -278,16 +279,19 @@ Now that you know the basics, explore these topics:
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
 
 **📖 Learn More**
+
 - [Domain Resolution](/reference/resolve/) - Complete guide to reading domain data
 - [Profile Widget](/reference/widget/) - Customize the React component
 - [Domain Operations](/reference/operations/) - Write operations (requires wallet)
 
 **🛠️ Guides**
+
 - [Buy a .night domain](/guides/buy_domain/) - Get your own domain
 - [Update domain fields](/guides/update_fields/) - Customize your profile
 - [Transfer domains](/guides/transfer_domain/) - Transfer ownership
 
 **📚 Reference**
+
 - [Utility Functions](/reference/utils/) - Helper functions for validation
 - [MNS Specification](/guides/valid_domains/) - Domain naming rules
 - [Types Reference](/reference/types/) - TypeScript type definitions
@@ -298,29 +302,29 @@ Now that you know the basics, explore these topics:
 
 ### Minimal DApp Integration
 
+A simple CLI DApp to visualize a Midnight Network stored profile through Midnames SDK tools. 
+
 ```typescript
 // app.ts
-import { getDomainProfile } from '@midnames/sdk';
+import { getDomainProfile } from "@midnames/sdk";
 
 async function main() {
-  const domain = process.argv[2] || 'alice.night';
+  const domain = process.argv[2] || "alice.night";
   const result = await getDomainProfile(domain);
 
   if (!result.success) {
-    console.error('Error:', result.error.message);
+    console.error("Error:", result.error.message);
     process.exit(1);
   }
 
   const { fullDomain, resolvedTarget, info, fields } = result.data;
 
-  console.log(`
-=== ${fullDomain} ===
-Owner: ${info?.owner || 'N/A'}
-Target: ${resolvedTarget || 'Not set'}
-Name: ${fields.get('name') || 'N/A'}
-Bio: ${fields.get('bio') || 'N/A'}
-Website: ${fields.get('website') || 'N/A'}
-  `);
+  console.log(` === ${fullDomain} === `);
+  console.log(` Owner: ${info?.owner || "N/A"}`);
+  console.log(` Target: ${resolvedTarget  || "N/A"}`);
+  console.log(` Name: ${fields.get("name") || "N/A"}`);
+  console.log(` Bio: ${fields.get("bio") || "N/A"}`);
+  console.log(` Website: ${fields.get("website") || "N/A"}`);
 }
 
 main();
@@ -328,22 +332,22 @@ main();
 
 ```bash
 # Run it
-npx ts-node app.ts alice.night
+npx ts-node app.ts foo.night
 ```
 
 ### React App with Widget
 
 ```tsx
 // App.tsx
-import { useState } from 'react';
-import '@midnames/sdk/styles.css';
-import { DomainProfileWidget } from '@midnames/sdk/react/DomainProfileWidget';
+import { useState } from "react";
+import "@midnames/sdk/styles.css";
+import { DomainProfileWidget } from "@midnames/sdk/react/DomainProfileWidget";
 
 export default function App() {
-  const [domain, setDomain] = useState('alice.night');
+  const [domain, setDomain] = useState("alice.night");
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
       <h1>Midnames Profile Viewer</h1>
 
       <input
@@ -351,14 +355,14 @@ export default function App() {
         value={domain}
         onChange={(e) => setDomain(e.target.value)}
         placeholder="Enter a .night domain"
-        style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
+        style={{ width: "100%", padding: "0.5rem", marginBottom: "1rem" }}
       />
 
       <DomainProfileWidget
         fullDomain={domain}
         variant="full"
         onError={(error) => {
-          console.error('Widget error:', error);
+          console.error("Widget error:", error);
         }}
       />
     </div>
@@ -370,7 +374,7 @@ export default function App() {
 
 ### "Domain not found" for valid domains
 
-- Check that you're using the correct network (TestNet vs MainNet)
+- Check that you're using the correct network with your wallet provider (TestNet vs MainNet)
 - Verify the domain is actually registered at [ns.midnames.com](https://ns.midnames.com)
 - Ensure `.night` TLD is included (use `normalizeDomain()` helper)
 

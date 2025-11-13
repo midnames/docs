@@ -17,7 +17,7 @@ Learn how to perform write operations on `.night` domains, including field manag
 
 ## Overview
 
-The SDK provides these write operations:
+The SDK provides the following write operations:
 
 **Field Management:**
 
@@ -67,14 +67,27 @@ const providers: ContractProviders<typeof leafContractInstance> = {
   <a href="https://docs.midnight.network" target="_blank">
     Midnight Network documentation
   </a>{" "}
-  for wallet integration details.
+for wallet integration details.
 </Aside>
 
 ## Field Management
 
+
+
+
+
+
+
+
 ### Insert or Update a Field
 
-Add or update a single field in your domain:
+Add or update a single field in your domain: {" "}
+
+**Signature:**
+
+```typescript
+async function insertField(domain: string, key: string, value: string, providers: PublicDataProviders): Promise<Return<foo>>
+```
 
 ```typescript
 import { insertField } from "@midnames/sdk";
@@ -115,9 +128,22 @@ await insertField("alice.night", "website", "https://alice.dev", providers);
 await insertField("alice.night", "epk", "mn_shield-epk_test1...", providers);
 ```
 
+
+
+
+
+
+
+
 ### Add Multiple Fields at Once
 
-Add up to 10 fields in a single transaction (more efficient than multiple `insertField` calls):
+Add up to 10 fields in a single transaction (more efficient than multiple `insertField` calls): {" "}
+
+**Signature:**
+
+```typescript
+async function addMultipleFields(domain: string, fields: Array<[string, string]>, providers: PublicDataProviders): Promise<Return<foo>>
+```
 
 ```typescript
 import { addMultipleFields } from "@midnames/sdk";
@@ -143,10 +169,22 @@ if (result.success) {
   multiple times. Use it when setting up a new profile or bulk-updating fields.
 </Aside>
 
+
+
+
+
+
+
+
 ### Clear a Specific Field
 
-Remove a field from your domain:
+Remove a field from your domain: {" "}
 
+**Signature:**
+
+```typescript
+async function clearField(domain: string, key: string, value: string, providers: PublicDataProviders) Promise<Return<foo>>
+```
 ```typescript
 import { clearField } from "@midnames/sdk";
 
@@ -157,10 +195,22 @@ if (result.success) {
 }
 ```
 
+
+
+
+
+
+
+
 ### Clear All Fields
 
-Remove all custom fields from your domain:
+Remove all custom fields from your domain: {" "}
 
+**Signature:** 
+
+```typescript
+async function clearAllFields(domain: string, providers: PublicDataProviders) Promise<Return<foo>>
+```
 ```typescript
 import { clearAllFields } from "@midnames/sdk";
 
@@ -171,12 +221,23 @@ if (result.success) {
 }
 ```
 
+
+
+
+
+
+
 ## Domain Target Management
 
 ### Update Domain Target
 
-Change where your domain resolves to. The target can be either a wallet address or a contract address:
+Change where your domain resolves to. The target can be either a wallet address or a contract address: {" "}
 
+**Signature:**
+
+```typescript
+async function updateDomainTarget(domain: string, target: string, providers: PublicDataProviders) Promise<Return<foo>>
+```
 ```typescript
 import { updateDomainTarget } from "@midnames/sdk";
 
@@ -200,11 +261,23 @@ const result2 = await updateDomainTarget(
   with `mn_`) or contract address (starts with `0200` or `0x`).
 </Aside>
 
+
+
+
+
+
+
 ## Ownership Transfer
 
 ### Transfer Domain Ownership (Method 1)
 
-Transfer ownership using the parent domain's contract:
+Transfer ownership using the parent domain's contract: {" "}
+
+**Signature:**
+
+```typescript
+async function transferDomainOwnership(parent: string, subdomain: string, new_owner: string, providers: PublicDataProviders) Promise<Return<foo>>
+```
 
 ```typescript
 import { transferDomainOwnership } from "@midnames/sdk";
@@ -227,9 +300,22 @@ if (result.success) {
   transaction.
 </Aside>
 
+
+
+
+
+
+
 ### Change Domain Owner (Method 2)
 
-Transfer ownership using the domain's own contract:
+Transfer ownership using the domain's own contract: {" "}
+
+**Signature:**
+
+```typescript
+async function changeDomainOwner(domain: string, new_owner: string, providers: PublicDataProviders) Promise<Return<foo>>
+```
+
 
 ```typescript
 import { changeDomainOwner } from "@midnames/sdk";
@@ -245,6 +331,12 @@ const result = await changeDomainOwner(
 
 - Use `transferDomainOwnership()` when you own the parent domain
 - Use `changeDomainOwner()` when you own the domain itself
+
+
+
+
+
+
 
 ## Subdomain Registration
 
@@ -271,6 +363,12 @@ const result = await registerDomainFor(
   payment, making it easy to create hierarchical domain structures.
 </Aside>
 
+
+
+
+
+
+
 ### Buy Subdomain (Paid)
 
 Purchase a subdomain when you're not the parent owner:
@@ -291,6 +389,12 @@ const result = await buyDomainFor(
 ```
 
 The payment amount must match the `domainCost` setting of the parent domain.
+
+
+
+
+
+
 
 ## Domain Settings
 
@@ -321,6 +425,12 @@ await updateDomainCost("alice.night", BigInt(10000), providers);
 await updateDomainCost("premium.alice.night", BigInt(100000), providers);
 ```
 
+
+
+
+
+
+
 ### Update Accepted Token Type
 
 Change which token type is accepted for subdomain purchases:
@@ -339,6 +449,12 @@ const result = await updateDomainColor("alice.night", colorBytes, providers);
   users will use the native token (default).
 </Aside>
 
+
+
+
+
+
+
 ### Set Domain Resolver
 
 Update the resolver contract for a subdomain:
@@ -355,6 +471,12 @@ const result = await setDomainResolver(
 
 // Updates resolver for: work.alice.night
 ```
+
+
+
+
+
+
 
 ## Error Handling
 
@@ -381,6 +503,12 @@ if (!result.success) {
 }
 ```
 
+
+
+
+
+
+
 ## Transaction Monitoring
 
 All successful operations return a transaction ID:
@@ -396,6 +524,12 @@ if (result.success) {
   // (exact implementation depends on your setup)
 }
 ```
+
+
+
+
+
+
 
 ## Best Practices & Recommendations
 
