@@ -2,3 +2,265 @@
 title: Resolve a .night domain
 description: How to use the SDK to resolve a .night domain.
 ---
+
+import { Aside } from "@astrojs/starlight/components";
+
+This page documents the core query functions exported by `@midnames/sdk`.
+
+## The Result type
+
+All async functions return `Promise<Result<T>>`. The `Result` type is a discriminated union:
+
+```typescript
+type Result<T, E = MidnamesError> =
+  | { success: true; data: T }
+  | { success: false; error: E };
+```
+
+Always check `result.success` before accessing `result.data` or `result.error`:
+
+```typescript
+const result = await resolveDomain("facu.night");
+
+if (result.success) {
+  console.log(result.data); // the resolved address
+} else {
+  console.error(result.error.message);
+  console.error(result.error.code); // e.g. "DOMAIN_NOT_FOUND"
+}
+```
+
+## Provider setup
+
+By default, all functions connect to the Midnight **preprod** testnet. You can use the default provider or create a custom one:
+
+```typescript
+import { getDefaultProvider, createDefaultProvider } from "@midnames/sdk/provider";
+
+// Auto-connects to preprod (lazy-initialized)
+const provider = getDefaultProvider();
+
+// Or create with custom config
+const customProvider = createDefaultProvider({
+  indexerUrl: "https://indexer.preprod.midnight.network/api/v3/graphql",
+  indexerWsUrl: "wss://indexer.preprod.midnight.network/api/v3/graphql/ws",
+  networkId: "preprod",
+});
+```
+
+Pass a custom provider to any function via the `options.provider` parameter.
+
+---
+
+## resolveDomain
+
+Resolves a `.night` domain to its target address (wallet or contract).
+
+```typescript
+function resolveDomain(
+  domain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<string>>
+```
+
+**Parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `domain` | `string` | The full domain name, e.g. `"facu.night"` |
+| `options.provider` | `PublicDataProvider` | Optional custom provider |
+
+**Example**
+
+```typescript
+import { resolveDomain } from "@midnames/sdk";
+
+const result = await resolveDomain("facu.night");
+if (result.success) {
+  console.log("Target:", result.data);
+}
+```
+
+---
+
+## getDomainInfo
+
+Returns the owner, resolver contract address, and parent contract address for a domain.
+
+```typescript
+function getDomainInfo(
+  fullDomain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<DomainInfo>>
+```
+
+**`DomainInfo`**
+
+```typescript
+interface DomainInfo {
+  owner: string;
+  resolver: string;
+  contractAddress?: string;
+}
+```
+
+**Example**
+
+```typescript
+import { getDomainInfo } from "@midnames/sdk";
+
+const result = await getDomainInfo("facu.night");
+if (result.success) {
+  console.log("Owner:", result.data.owner);
+  console.log("Resolver:", result.data.resolver);
+}
+```
+
+---
+
+## getDomainFields
+
+Returns all custom fields (records) set on a domain as a `Map<string, string>`.
+
+```typescript
+function getDomainFields(
+  fullDomain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<Map<string, string>>>
+```
+
+**Example**
+
+```typescript
+import { getDomainFields } from "@midnames/sdk";
+
+const result = await getDomainFields("facu.night");
+if (result.success) {
+  for (const [key, value] of result.data) {
+    console.log(`${key}: ${value}`);
+  }
+}
+```
+
+---
+
+## getDomainSettings
+
+Returns the coin color and domain cost settings for a domain's resolver contract.
+
+```typescript
+function getDomainSettings(
+  fullDomain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<DomainSettings>>
+```
+
+**`DomainSettings`**
+
+```typescript
+interface DomainSettings {
+  coinColor: Uint8Array;
+  domainCost: bigint;
+}
+```
+
+**Example**
+
+```typescript
+import { getDomainSettings } from "@midnames/sdk";
+
+const result = await getDomainSettings("facu.night");
+if (result.success) {
+  console.log("Domain cost:", result.data.domainCost);
+}
+```
+
+---
+
+## getDomainProfile
+
+Returns a combined profile with the resolved target, domain info, fields, and settings in a single call.
+
+```typescript
+function getDomainProfile(
+  fullDomain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<DomainProfileData>>
+```
+
+**`DomainProfileData`**
+
+```typescript
+interface DomainProfileData {
+  fullDomain: string;
+  resolvedTarget: string | null;
+  info: DomainInfo | null;
+  fields: Map<string, string>;
+  settings: DomainSettings | null;
+}
+```
+
+**Example**
+
+```typescript
+import { getDomainProfile } from "@midnames/sdk";
+
+const result = await getDomainProfile("facu.night");
+if (result.success) {
+  const { resolvedTarget, info, fields, settings } = result.data;
+  console.log("Target:", resolvedTarget);
+  console.log("Bio:", fields.get("bio"));
+}
+```
+
+---
+
+## getSubdomains
+
+Returns all subdomains registered under a given domain.
+
+```typescript
+function getSubdomains(
+  fullDomain: string,
+  options?: { provider?: PublicDataProvider }
+): Promise<Result<Map<string, DomainData>>>
+```
+
+**Example**
+
+```typescript
+import { getSubdomains } from "@midnames/sdk";
+
+const result = await getSubdomains("facu.night");
+if (result.success) {
+  for (const [name, data] of result.data) {
+    console.log(`Subdomain: ${name}.facu.night`);
+  }
+}
+```
+
+---
+
+## Error types
+
+All errors extend `MidnamesError`, which has `message`, `code`, and optional `details` properties.
+
+| Error class | Code | Description |
+|-------------|------|-------------|
+| `MidnamesError` | varies | Base error class |
+| `NetworkError` | `NETWORK_ERROR` | Network or provider failure |
+| `DomainNotFoundError` | `DOMAIN_NOT_FOUND` | Domain does not exist |
+| `InvalidDomainError` | `INVALID_DOMAIN` | Domain format is invalid |
+| `ContractNotFoundError` | `CONTRACT_NOT_FOUND` | Resolver contract not found |
+| `ProviderError` | `PROVIDER_ERROR` | Provider configuration issue |
+
+```typescript
+import { DomainNotFoundError } from "@midnames/sdk";
+
+const result = await resolveDomain("nonexistent.night");
+if (!result.success) {
+  if (result.error instanceof DomainNotFoundError) {
+    console.log("Domain not registered");
+  }
+}
+```

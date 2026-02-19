@@ -2,3 +2,123 @@
 title: Domain Widget
 description: How to use widgets in your own site.
 ---
+
+import { Aside } from "@astrojs/starlight/components";
+
+The `DomainProfileWidget` is a React component that displays a `.night` domain's profile, including avatar, bio, social links, and resolved addresses.
+
+## Installation
+
+```bash
+npm install @midnames/sdk
+```
+
+## Basic usage
+
+```tsx
+import { DomainProfileWidget } from "@midnames/sdk/react/DomainProfileWidget";
+import "@midnames/sdk/styles.css";
+
+function App() {
+  return <DomainProfileWidget fullDomain="facu.night" />;
+}
+```
+
+{/* <Aside type="note" title="CSS import required">
+  You must import `@midnames/sdk/styles.css` for the widget to render correctly. Import it once at your app's entry point.
+</Aside> */}
+
+## Props
+
+### Required
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `fullDomain` | `string` | The `.night` domain to display |
+
+### Optional
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `publicDataProvider` | `PublicDataProvider` | auto (preprod) | Custom data provider |
+| `variant` | `'full' \| 'compact' \| 'inline' \| 'minimal'` | `'full'` | Layout variant |
+| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | Color theme |
+| `showBanner` | `boolean` | `true` | Show banner image |
+| `showAvatar` | `boolean` | `true` | Show avatar |
+| `showBio` | `boolean` | `true` | Show bio text |
+| `showDomainInfo` | `boolean` | `true` | Show address fields |
+| `showSocialLinks` | `boolean` | `true` | Show social link chips |
+| `showCopyButtons` | `boolean` | `true` | Show copy-to-clipboard on addresses |
+| `showStatus` | `boolean` | `true` | Show registration status badge |
+| `fields` | `('target' \| 'owner' \| 'resolver')[]` | `['target', 'owner', 'resolver']` | Which address fields to display |
+| `customFields` | `string[]` | `[]` | Additional domain fields to display |
+| `borderRadius` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | Card border radius |
+| `padding` | `'none' \| 'sm' \| 'md' \| 'lg'` | `'md'` | Card padding |
+| `className` | `string` | — | Additional CSS class |
+| `renderActions` | `(data: DomainProfileData \| null) => ReactNode` | — | Render custom actions below the profile |
+| `onError` | `(error: MidnamesError) => void` | — | Error callback |
+| `onFieldClick` | `(field: string, value: string) => void` | — | Field click callback |
+| `onCopySuccess` | `(field: string, value: string) => void` | — | Copy success callback |
+
+## Examples
+
+### Compact variant with dark theme
+
+```tsx
+<DomainProfileWidget
+  fullDomain="facu.night"
+  variant="compact"
+  theme="dark"
+/>
+```
+
+### Minimal card showing only target
+
+```tsx
+<DomainProfileWidget
+  fullDomain="facu.night"
+  variant="minimal"
+  fields={["target"]}
+  showBanner={false}
+  showSocialLinks={false}
+/>
+```
+
+### With custom fields and callbacks
+
+```tsx
+<DomainProfileWidget
+  fullDomain="facu.night"
+  customFields={["website", "github"]}
+  onCopySuccess={(field, value) => {
+    console.log(`Copied ${field}: ${value}`);
+  }}
+  onError={(err) => {
+    console.error("Widget error:", err.code, err.message);
+  }}
+/>
+```
+
+### Custom actions
+
+```tsx
+<DomainProfileWidget
+  fullDomain="facu.night"
+  renderActions={(data) => (
+    <button onClick={() => window.open(`https://preprod.midnames.com/${data?.fullDomain}`)}>
+      View on Midnames
+    </button>
+  )}
+/>
+```
+
+## HolographicCard
+
+The SDK also exports a `HolographicCard` component with a holographic visual effect:
+
+```tsx
+import { HolographicCard } from "@midnames/sdk/react/HolographicCard";
+import "@midnames/sdk/holographic-card.css";
+```
+
+This component wraps content with an interactive holographic shine effect.

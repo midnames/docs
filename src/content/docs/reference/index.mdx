@@ -5,6 +5,37 @@ sidebar:
   hidden: true
 ---
 
-Here are some references to start using the Midnames SDK.
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
-Look through the list on the left to find a guide that suits your needs.
+The `@midnames/sdk` package lets you resolve `.night` domains, query domain data, and embed domain profile widgets in your app.
+
+## Installation
+
+```bash
+npm install @midnames/sdk
+```
+
+## Quick start
+
+```typescript
+import { resolveDomain } from "@midnames/sdk";
+
+const result = await resolveDomain("facu.night");
+
+if (result.success) {
+  console.log("Resolved address:", result.data);
+} else {
+  console.error("Error:", result.error.message);
+}
+```
+
+All SDK functions return a `Result<T>` object. Check `result.success` to determine if the call succeeded, then access `result.data` for the value or `result.error` for the error details.
+
+## Modules
+
+<CardGrid>
+  <LinkCard title="Core functions" description="resolveDomain, getDomainInfo, getDomainFields, and more" href="/reference/resolve/" />
+  <LinkCard title="Domain Widget" description="Embeddable React component for domain profiles" href="/reference/widget/" />
+</CardGrid>
+
+The SDK also exports utility functions for domain validation (`@midnames/sdk/utils/domain`) and address formatting (`@midnames/sdk/utils/address`).

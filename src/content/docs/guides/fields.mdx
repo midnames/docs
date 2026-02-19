@@ -1,0 +1,64 @@
+---
+title: Domain fields
+description: Learn about fields (records) you can attach to your .night domain
+sidebar:
+  label: Domain fields
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+Fields (also called records) are key-value metadata attached to your `.night` domain. They let you store information like a display name, bio, social links, avatar URL, and more — all on-chain and queryable by anyone through the SDK.
+
+## Common fields
+
+| Field | Description |
+|-------|-------------|
+| `name` | Display name shown on your profile |
+| `bio` | Short description or bio text |
+| `website` | Your website URL |
+| `twitter` | Twitter/X handle (without `@`) |
+| `github` | GitHub username |
+| `avatar` | URL to your profile picture |
+| `epk` | Your `EncryptionPublicKey` — set automatically on registration |
+| `location` | Your location |
+
+You can also add any custom field you like. Field names are case-insensitive.
+
+<Aside type="note" title="epk field">
+  The `epk` field is set automatically when you register a domain. When both `epk` and a resolved target are present, the widget derives your shielded address (`mn_shield-addr_test...`) instead of showing the raw `ZswapCoinPublicKey`.
+</Aside>
+
+## How fields are used
+
+Fields appear on your domain profile at <a href="https://preprod.midnames.com" target="_blank">preprod.midnames.com</a> and in any app that uses the `DomainProfileWidget` or calls `getDomainFields` from the SDK.
+
+The widget automatically reads these fields to populate the profile card — for example, `avatar` sets the profile picture, `bio` fills the bio section, and `twitter`/`github`/`website` render as social link chips.
+
+## Managing fields
+
+To add, edit, or remove fields, go to <a href="https://preprod.midnames.com" target="_blank">preprod.midnames.com</a>, search for your domain, and click **Customize & Advanced**. From there you can:
+
+- **Add fields** — enter a field name and value, then click the add button. You can add multiple fields at once.
+- **Edit fields** — change the value of an existing field in the input.
+- **Remove fields** — clear the value (leave it empty) to remove a field.
+
+Click the update button when you're done. Your Lace wallet will prompt you to sign the transaction.
+
+<Aside type="caution" title="10-field limit per transaction">
+  You can update a maximum of **10 fields per transaction**. If you need to update more, submit multiple transactions.
+</Aside>
+
+## Reading fields with the SDK
+
+```typescript
+import { getDomainFields } from "@midnames/sdk";
+
+const result = await getDomainFields("facu.night");
+if (result.success) {
+  for (const [key, value] of result.data) {
+    console.log(`${key}: ${value}`);
+  }
+}
+```
+
+See the [SDK reference](/reference/resolve/#getdomainfields) for full details.
