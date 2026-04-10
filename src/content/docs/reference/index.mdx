@@ -23,7 +23,9 @@ import { resolveDomain } from "@midnames/sdk";
 const result = await resolveDomain("facu.night");
 
 if (result.success) {
-  console.log("Resolved address:", result.data);
+  // result.data is a DomainTarget: { type: "contract" | "shielded" | "unshielded", address: string }
+  console.log("Target type:", result.data.type);
+  console.log("Address:", result.data.address);
 } else {
   console.error("Error:", result.error.message);
 }
@@ -38,4 +40,4 @@ All SDK functions return a `Result<T>` object. Check `result.success` to determi
   <LinkCard title="Domain Widget" description="Embeddable React component for domain profiles" href="/reference/widget/" />
 </CardGrid>
 
-The SDK also exports utility functions for domain validation (`@midnames/sdk/utils/domain`) and address formatting (`@midnames/sdk/utils/address`).
+The SDK also exports utility functions for domain validation and address formatting, as well as write operations for creating and managing domains. All exports are available from `@midnames/sdk`.

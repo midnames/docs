@@ -23,7 +23,7 @@ Always check `result.success` before accessing `result.data` or `result.error`:
 const result = await resolveDomain("facu.night");
 
 if (result.success) {
-  console.log(result.data); // the resolved address
+  console.log(result.data); // the resolved target
 } else {
   console.error(result.error.message);
   console.error(result.error.code); // e.g. "DOMAIN_NOT_FOUND"
@@ -32,12 +32,12 @@ if (result.success) {
 
 ## Provider setup
 
-By default, all functions connect to the Midnight **preprod** testnet. You can use the default provider or create a custom one:
+By default, all functions connect to the Midnight **mainnet**. You can use the default provider or create a custom one:
 
 ```typescript
-import { getDefaultProvider, createDefaultProvider } from "@midnames/sdk/provider";
+import { getDefaultProvider, createDefaultProvider } from "@midnames/sdk";
 
-// Auto-connects to preprod (lazy-initialized)
+// Auto-connects to mainnet (lazy-initialized)
 const provider = getDefaultProvider();
 
 // Or create with custom config
@@ -48,19 +48,28 @@ const customProvider = createDefaultProvider({
 });
 ```
 
-Pass a custom provider to any function via the `options.provider` parameter.
+Pass a custom provider to any function via the `options.provider` parameter. You can also override the contract address with `options.contractAddress`.
 
 ---
 
 ## resolveDomain
 
-Resolves a `.night` domain to its target address (wallet or contract).
+Resolves a `.night` domain to its target (wallet or contract address).
 
 ```typescript
 function resolveDomain(
   domain: string,
-  options?: { provider?: PublicDataProvider }
-): Promise<Result<string>>
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
+): Promise<Result<DomainTarget>>
+```
+
+**`DomainTarget`**
+
+```typescript
+type DomainTarget =
+  | { type: "contract"; address: string }
+  | { type: "shielded"; address: string }
+  | { type: "unshielded"; address: string }
 ```
 
 **Parameters**
@@ -69,6 +78,7 @@ function resolveDomain(
 |------|------|-------------|
 | `domain` | `string` | The full domain name, e.g. `"facu.night"` |
 | `options.provider` | `PublicDataProvider` | Optional custom provider |
+| `options.contractAddress` | `string` | Optional contract address override |
 
 **Example**
 
@@ -77,7 +87,34 @@ import { resolveDomain } from "@midnames/sdk";
 
 const result = await resolveDomain("facu.night");
 if (result.success) {
-  console.log("Target:", result.data);
+  const target = result.data;
+  console.log("Type:", target.type);       // "contract" | "shielded" | "unshielded"
+  console.log("Address:", target.address);
+}
+```
+
+---
+
+## resolveDefault
+
+Like `resolveDomain`, but returns the value of the domain's default field if one is set, falling back to the target address.
+
+```typescript
+function resolveDefault(
+  domain: string,
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
+): Promise<Result<string | DomainTarget>>
+```
+
+**Example**
+
+```typescript
+import { resolveDefault } from "@midnames/sdk";
+
+const result = await resolveDefault("facu.night");
+if (result.success) {
+  // May be a string (field value) or a DomainTarget
+  console.log(result.data);
 }
 ```
 
@@ -85,12 +122,12 @@ if (result.success) {
 
 ## getDomainInfo
 
-Returns the owner, resolver contract address, and parent contract address for a domain.
+Returns ownership and target information for a domain.
 
 ```typescript
 function getDomainInfo(
   fullDomain: string,
-  options?: { provider?: PublicDataProvider }
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
 ): Promise<Result<DomainInfo>>
 ```
 
@@ -98,9 +135,11 @@ function getDomainInfo(
 
 ```typescript
 interface DomainInfo {
-  owner: string;
-  resolver: string;
-  contractAddress?: string;
+  id: bigint;
+  owner: string;         // owner public key (hex)
+  ownerAddress: string;  // owner unshielded address
+  target: DomainTarget;
+  targetLocked: boolean;
 }
 ```
 
@@ -111,8 +150,9 @@ import { getDomainInfo } from "@midnames/sdk";
 
 const result = await getDomainInfo("facu.night");
 if (result.success) {
-  console.log("Owner:", result.data.owner);
-  console.log("Resolver:", result.data.resolver);
+  console.log("Owner address:", result.data.ownerAddress);
+  console.log("Target:", result.data.target);
+  console.log("Target locked:", result.data.targetLocked);
 }
 ```
 
@@ -125,7 +165,7 @@ Returns all custom fields (records) set on a domain as a `Map<string, string>`.
 ```typescript
 function getDomainFields(
   fullDomain: string,
-  options?: { provider?: PublicDataProvider }
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
 ): Promise<Result<Map<string, string>>>
 ```
 
@@ -146,12 +186,12 @@ if (result.success) {
 
 ## getDomainSettings
 
-Returns the coin color and domain cost settings for a domain's resolver contract.
+Returns the payment configuration and settings for a domain.
 
 ```typescript
 function getDomainSettings(
   fullDomain: string,
-  options?: { provider?: PublicDataProvider }
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
 ): Promise<Result<DomainSettings>>
 ```
 
@@ -160,7 +200,14 @@ function getDomainSettings(
 ```typescript
 interface DomainSettings {
   coinColor: Uint8Array;
-  domainCost: bigint;
+  costs: {
+    short: bigint;   // cost for short names (≤ 3 chars)
+    medium: bigint;  // cost for medium names (4–6 chars)
+    long: bigint;    // cost for long names (≥ 7 chars)
+  };
+  buyEnabled: boolean;
+  defaultField: string | null;
+  paymentConfigLocked: boolean;
 }
 ```
 
@@ -171,7 +218,9 @@ import { getDomainSettings } from "@midnames/sdk";
 
 const result = await getDomainSettings("facu.night");
 if (result.success) {
-  console.log("Domain cost:", result.data.domainCost);
+  const { costs, buyEnabled } = result.data;
+  console.log("Buy enabled:", buyEnabled);
+  console.log("Cost (long name):", costs.long);
 }
 ```
 
@@ -179,12 +228,12 @@ if (result.success) {
 
 ## getDomainProfile
 
-Returns a combined profile with the resolved target, domain info, fields, and settings in a single call.
+Returns a combined profile with domain info, fields, and settings in a single call.
 
 ```typescript
 function getDomainProfile(
   fullDomain: string,
-  options?: { provider?: PublicDataProvider }
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
 ): Promise<Result<DomainProfileData>>
 ```
 
@@ -193,7 +242,6 @@ function getDomainProfile(
 ```typescript
 interface DomainProfileData {
   fullDomain: string;
-  resolvedTarget: string | null;
   info: DomainInfo | null;
   fields: Map<string, string>;
   settings: DomainSettings | null;
@@ -207,8 +255,8 @@ import { getDomainProfile } from "@midnames/sdk";
 
 const result = await getDomainProfile("facu.night");
 if (result.success) {
-  const { resolvedTarget, info, fields, settings } = result.data;
-  console.log("Target:", resolvedTarget);
+  const { info, fields, settings } = result.data;
+  console.log("Target:", info?.target);
   console.log("Bio:", fields.get("bio"));
 }
 ```
@@ -222,8 +270,8 @@ Returns all subdomains registered under a given domain.
 ```typescript
 function getSubdomains(
   fullDomain: string,
-  options?: { provider?: PublicDataProvider }
-): Promise<Result<Map<string, DomainData>>>
+  options?: { provider?: PublicDataProvider; contractAddress?: string }
+): Promise<Result<Map<string, DomainInfo>>>
 ```
 
 **Example**
@@ -233,8 +281,8 @@ import { getSubdomains } from "@midnames/sdk";
 
 const result = await getSubdomains("facu.night");
 if (result.success) {
-  for (const [name, data] of result.data) {
-    console.log(`Subdomain: ${name}.facu.night`);
+  for (const [name, info] of result.data) {
+    console.log(`${name}.facu.night → ${info.target.address}`);
   }
 }
 ```
@@ -252,7 +300,6 @@ All errors extend `MidnamesError`, which has `message`, `code`, and optional `de
 | `DomainNotFoundError` | `DOMAIN_NOT_FOUND` | Domain does not exist |
 | `InvalidDomainError` | `INVALID_DOMAIN` | Domain format is invalid |
 | `ContractNotFoundError` | `CONTRACT_NOT_FOUND` | Resolver contract not found |
-| `ProviderError` | `PROVIDER_ERROR` | Provider configuration issue |
 
 ```typescript
 import { DomainNotFoundError } from "@midnames/sdk";
