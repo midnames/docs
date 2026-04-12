@@ -7,10 +7,10 @@ import starlightLinksValidator from "starlight-links-validator";
 import starlightHeadingBadges from "starlight-heading-badges";
 
 export default defineConfig({
-  site: "https://docs.midnames.com",
+  site: "https://docs.midnight.domains",
   integrations: [
     starlight({
-      title: "Midnames",
+      title: "Midnight Domains",
       components: {
         Pagination: "./src/components/CustomPagination.astro",
       },
