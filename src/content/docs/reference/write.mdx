@@ -1,0 +1,325 @@
+---
+title: Write operations
+description: SDK functions for creating and managing .night domains on-chain.
+---
+
+import { Aside } from "@astrojs/starlight/components";
+
+<Aside type="caution">
+  Write operations submit transactions to the Midnight blockchain. They require a connected wallet via `ContractProviders` from `@midnight-ntwrk/midnight-js-contracts`. Read operations do not require a wallet.
+</Aside>
+
+All write functions are exported from `@midnames/sdk` and return `Promise<Result<{ transactionId: string }>>`.
+
+## OperationOptions
+
+Every write function accepts an optional `OperationOptions` object as its last argument:
+
+```typescript
+interface OperationOptions {
+  contractAddress?: string; // Override the default contract address
+  secretKey?: string;       // Domain secret key for authorization (if required)
+}
+```
+
+## PaymentConfig
+
+Used when creating or updating a domain's payment configuration:
+
+```typescript
+type PaymentConfig = {
+  cost_short:   bigint;     // Cost to register a short name (≤ 3 chars)
+  cost_med:     bigint;     // Cost to register a medium name (4–6 chars)
+  cost_long:    bigint;     // Cost to register a long name (≥ 7 chars)
+  coin_color:   Uint8Array; // Token colour identifier
+  buy_enabled:  boolean;    // Whether subdomain registration is open
+};
+```
+
+---
+
+## createDomain
+
+Registers a new subdomain under a parent domain.
+
+```typescript
+function createDomain(
+  domainName: string,
+  parentId: bigint,
+  ownerAddress: { bytes: Uint8Array },
+  target: DomainTarget,
+  paymentConfig: PaymentConfig,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions & {
+    fields?: Array<[string, string]>;
+    defaultField?: string;
+  }
+): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `domainName` | `string` | The label to register, e.g. `"facu"` for `facu.night` |
+| `parentId` | `bigint` | ID of the parent domain (TLD or subdomain) |
+| `ownerAddress` | `{ bytes: Uint8Array }` | Owner's address as raw bytes |
+| `target` | `DomainTarget` | Initial resolution target |
+| `paymentConfig` | `PaymentConfig` | Subdomain registration pricing and settings |
+| `providers` | `ContractProviders<NS.Contract>` | Midnight wallet providers |
+| `options.fields` | `Array<[string, string]>` | Up to 10 initial key-value fields |
+| `options.defaultField` | `string` | Field key to use as the default resolution value |
+| `options.contractAddress` | `string` | Override the contract address |
+| `options.secretKey` | `string` | Domain secret key |
+
+**Example**
+
+```typescript
+import { createDomain } from "@midnames/sdk";
+
+const result = await createDomain(
+  "facu",
+  parentId,
+  ownerAddress,
+  { type: "unshielded", address: "mn1qq..." },
+  { cost_short: 0n, cost_med: 0n, cost_long: 0n, coin_color: new Uint8Array(32), buy_enabled: false },
+  providers,
+  { fields: [["twitter", "@facundo"]] }
+);
+
+if (result.success) {
+  console.log("Transaction ID:", result.transactionId);
+}
+```
+
+---
+
+## transferDomain
+
+Transfers ownership of a domain to a new address.
+
+```typescript
+function transferDomain(
+  domainName: string,
+  parentId: bigint,
+  newOwner: Uint8Array,
+  newOwnerAddress: { bytes: Uint8Array },
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+**Parameters**
+
+| Name | Type | Description |
+|------|------|-------------|
+| `domainName` | `string` | The domain label, e.g. `"facu"` |
+| `parentId` | `bigint` | ID of the parent domain |
+| `newOwner` | `Uint8Array` | New owner's public key bytes |
+| `newOwnerAddress` | `{ bytes: Uint8Array }` | New owner's address as raw bytes |
+| `providers` | `ContractProviders<NS.Contract>` | Midnight wallet providers |
+
+---
+
+## addDomainField
+
+Adds or updates a single key-value field on a domain.
+
+```typescript
+function addDomainField(
+  domainId: bigint,
+  key: string,
+  value: string,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+**Example**
+
+```typescript
+import { addDomainField } from "@midnames/sdk";
+
+const result = await addDomainField(domainId, "twitter", "@facundo", providers);
+```
+
+---
+
+## addMultipleFields
+
+Adds up to 10 key-value fields in a single transaction.
+
+```typescript
+function addMultipleFields(
+  domainId: bigint,
+  fields: Array<[string, string]>,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+<Aside type="caution">
+  Maximum of 10 fields per call. The function returns a `failure` result if `fields` is empty or has more than 10 entries.
+</Aside>
+
+**Example**
+
+```typescript
+import { addMultipleFields } from "@midnames/sdk";
+
+const result = await addMultipleFields(
+  domainId,
+  [
+    ["twitter", "@facundo"],
+    ["github", "facundo"],
+    ["website", "https://example.com"],
+  ],
+  providers
+);
+```
+
+---
+
+## removeDomainField
+
+Removes a single field from a domain.
+
+```typescript
+function removeDomainField(
+  domainId: bigint,
+  key: string,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+---
+
+## clearDomainFields
+
+Removes all fields from a domain in a single transaction.
+
+```typescript
+function clearDomainFields(
+  domainId: bigint,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+---
+
+## updateDefaultField
+
+Sets or clears the domain's default resolution field. When a default field is set, `resolveDefault` returns its value instead of the target address.
+
+```typescript
+function updateDefaultField(
+  domainId: bigint,
+  field: string | null,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+Pass `null` to clear the default field.
+
+---
+
+## updateDomainTarget
+
+Updates the resolution target of a domain. Fails if the target is locked.
+
+```typescript
+function updateDomainTarget(
+  domainId: bigint,
+  target: DomainTarget,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+**Example**
+
+```typescript
+import { updateDomainTarget } from "@midnames/sdk";
+
+const result = await updateDomainTarget(
+  domainId,
+  { type: "unshielded", address: "mn1qq..." },
+  providers
+);
+```
+
+---
+
+## updatePaymentConfig
+
+Updates the payment configuration of a domain. Fails if the payment config is locked.
+
+```typescript
+function updatePaymentConfig(
+  domainId: bigint,
+  config: PaymentConfig,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+---
+
+## lockTarget
+
+Permanently locks a domain's target. **This cannot be undone.**
+
+```typescript
+function lockTarget(
+  domainId: bigint,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+---
+
+## lockPaymentConfig
+
+Permanently locks a domain's payment configuration. **This cannot be undone.**
+
+```typescript
+function lockPaymentConfig(
+  domainId: bigint,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+---
+
+## Root-zone operations
+
+These functions can only be called by the root zone (TLD) owner.
+
+### changeRootEnableSubdomains
+
+Enables or disables subdomain registration at the root level.
+
+```typescript
+function changeRootEnableSubdomains(
+  enabled: boolean,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```
+
+### changeFieldLimit
+
+Sets a maximum number of fields that can be stored on any domain. Pass `null` to remove the limit.
+
+```typescript
+function changeFieldLimit(
+  limit: bigint | null,
+  providers: ContractProviders<NS.Contract>,
+  options?: OperationOptions
+): Promise<Result<{ transactionId: string }>>
+```

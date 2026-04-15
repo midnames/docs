@@ -114,11 +114,49 @@ function App() {
 
 ## HolographicCard
 
-The SDK also exports a `HolographicCard` component with a holographic visual effect:
+An interactive card component that fetches domain profile data and renders it with a holographic tilt/shine effect.
 
 ```tsx
 import { HolographicCard } from "@midnames/sdk/react/HolographicCard";
 import "@midnames/sdk/holographic-card.css";
+
+function App() {
+  return <HolographicCard domain="facu.night" />;
+}
 ```
 
-This component wraps content with an interactive holographic shine effect.
+### Props
+
+#### Required
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `domain` | `string` | The `.night` domain to display |
+
+#### Optional
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `publicDataProvider` | `PublicDataProvider` | auto (mainnet) | Custom data provider |
+| `showUserInfo` | `boolean` | `true` | Show avatar, name, and bio |
+| `enableTilt` | `boolean` | `true` | Enable mouse-tracking tilt effect |
+| `enableMobileTilt` | `boolean` | `false` | Enable device-orientation tilt on mobile |
+| `mobileTiltSensitivity` | `number` | `5` | Degrees of tilt per unit of device rotation |
+| `behindGradient` | `string` | holographic default | CSS gradient rendered behind the card |
+| `innerGradient` | `string` | `linear-gradient(145deg, ...)` | CSS gradient for the card face |
+| `showBehindGradient` | `boolean` | `true` | Show the behind gradient layer |
+| `contactText` | `string` | `"Contact"` | Label for the contact action button |
+| `className` | `string` | — | Additional CSS class on the card wrapper |
+| `onContactClick` | `() => void` | — | Called when the contact button is clicked |
+| `onError` | `(error: MidnamesError) => void` | — | Error callback |
+
+### Example with custom gradient
+
+```tsx
+<HolographicCard
+  domain="facu.night"
+  behindGradient="radial-gradient(circle at 50% 50%, #22d3ee44 0%, transparent 70%)"
+  contactText="Send message"
+  onContactClick={() => console.log("contact clicked")}
+/>
+```
