@@ -9,6 +9,9 @@
     "preview": "astro preview",
     "astro": "astro"
   },
+  "overrides": {
+    "zod": "^3.25.76"
+  },
   "dependencies": {
     "@astrojs/starlight": "^0.35.3",
     "@catppuccin/starlight": "^1.0.2",

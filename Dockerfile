@@ -1,9 +1,9 @@
-FROM oven/bun:1 AS build
+FROM node:lts AS build
 WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package*.json ./
+RUN npm ci
 COPY . .
-RUN bun run build
+RUN npm run build
 
 FROM nginx:alpine AS runtime
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
