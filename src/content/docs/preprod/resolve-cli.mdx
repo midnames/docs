@@ -1,0 +1,76 @@
+---
+title: Resolve a domain using the SDK (Preprod)
+description: How to resolve a .night domain on preprod using the command line.
+sidebar:
+  label: Resolve from the CLI
+---
+
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+<Aside type="caution">
+  This guide targets the **preprod** environment. Use `networkId: "preprod"` when initialising the SDK.
+</Aside>
+
+You can resolve `.night` domains directly from a terminal without writing a full application.
+
+## Prerequisites
+
+- [Bun](https://bun.sh) (or Node.js ≥ 20 with [`tsx`](https://tsx.is))
+- `@midnames/sdk` installed in your project
+
+```bash
+bun add @midnames/sdk
+# or: npm install @midnames/sdk
+```
+
+## Steps
+
+<Steps>
+
+1. **Create a script file**
+
+   Save this as `resolve.ts`:
+
+   ```typescript
+   import { resolveDomain, createDefaultProvider } from "@midnames/sdk";
+
+   const domain = process.argv[2];
+   if (!domain) {
+     console.error("Usage: bun run resolve.ts <domain.night>");
+     process.exit(1);
+   }
+
+   // Passing networkId: "preprod" sets both the indexer endpoint
+   // and the preprod contract address automatically.
+   const provider = createDefaultProvider({ networkId: "preprod" });
+
+   const result = await resolveDomain(domain, { provider });
+
+   if (result.success) {
+     console.log("Type:   ", result.data.type);
+     console.log("Address:", result.data.address);
+   } else {
+     console.error("Error:", result.error.message);
+     process.exit(1);
+   }
+   ```
+
+2. **Run it**
+
+   ```bash
+   bun run resolve.ts mid.night
+   ```
+
+   You should see output similar to:
+
+   ```
+   Type:    unshielded
+   Address: mn1qqgqqf...
+   ```
+
+   <Aside type="note">
+     Using Node.js instead of Bun? Install `tsx` and run with `npx tsx resolve.ts mid.night`.
+   </Aside>
+
+
+</Steps>
