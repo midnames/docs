@@ -1,38 +1,42 @@
 ---
-title: Welcome to Midnight Domains
-description: Get started using Midnight Domains.
+title: Midnight Domains
+description: Register, resolve, and integrate .night domains on the Midnight Network.
 template: splash
 hero:
-  tagline: Get started with your own <b>.night</b> domain.
-  image:
-    file: ../../assets/houston.webp
+  title: "Midnight Domains"
+  tagline: "Register, resolve, and integrate <b>.night</b> domains on the Midnight Network — decentralized identity for the modern web."
   actions:
-    - text: Read the docs
-      link: /guides/buy_domain/
+    - text: Get started
+      link: /guides/
       icon: right-arrow
+      variant: primary
+    - text: SDK reference
+      link: /reference/
+      icon: open-book
+      variant: secondary
 ---
 
 import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 <CardGrid>
   <LinkCard
-    title="Buy a .night domain"
-    description="Get your own .night domain to represent your identity on the Midnight Network."
+    title="Register a .night domain"
+    description="Search for an available .night name, connect your wallet, and claim your on-chain identity."
     href="/guides/buy_domain/"
   />
   <LinkCard
-    title="Transfer a .night domain"
-    description="Easily transfer your .night domain to another user on the Midnight Network."
+    title="Transfer ownership"
+    description="Hand off a domain to another address in a single signed transaction."
     href="/guides/transfer_domain/"
   />
   <LinkCard
-    title="Update fields in a domain"
-    description="Learn how to update the fields associated with your .night domain."
+    title="Manage domain fields"
+    description="Attach arbitrary key-value data to your domain — wallet addresses, social handles, and more."
     href="/guides/fields/"
   />
   <LinkCard
-    title="MNS Specification"
-    description="Understand the rules and specifications for valid .night domains."
+    title="Domain name rules"
+    description="Understand the character set, length limits, and reserved names for valid .night domains."
     href="/guides/valid_domains/"
-  ></LinkCard>
+  />
 </CardGrid>

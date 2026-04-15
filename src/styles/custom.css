@@ -1,0 +1,98 @@
+/*
+  Custom theme overrides — aligns docs with the frontend (midnight.domains).
+  Runs on top of @catppuccin/starlight (Mocha/Latte teal).
+  Frontend reference: #0b0b12 background, #22d3ee (cyan-400) accent.
+*/
+
+/* ── Dark mode (Catppuccin Mocha) ─────────────────────────────────────── */
+:root {
+  /* Match frontend body background #0b0b12 */
+  --sl-color-black:  #0b0b12;
+  --sl-color-gray-7: #0e0e17;
+  --sl-color-gray-6: #13131f;
+
+  /* Pin accent to frontend cyan (#22d3ee).
+     Catppuccin teal gives the right hue family; we fine-tune lightness
+     so the accent matches the frontend's interactive colour exactly. */
+  --sl-color-accent-low:  oklch(0.24 0.07 197);   /* very dark cyan surface  */
+  --sl-color-accent:      oklch(0.81 0.14 197);   /* ≈ #22d3ee               */
+  --sl-color-accent-high: oklch(0.92 0.06 197);   /* near-white cyan, for text */
+}
+
+/* ── Light mode (Catppuccin Latte) ────────────────────────────────────── */
+:root[data-theme='light'] {
+  /* Keep Latte's warm whites, only adjust accent hue to cyan */
+  --sl-color-accent-low:  oklch(0.90 0.06 197);
+  --sl-color-accent:      oklch(0.58 0.14 197);
+  --sl-color-accent-high: oklch(0.32 0.10 197);
+}
+
+/* ── Code blocks ─────────────────────────────────────────────────────── */
+:root:not([data-theme='light']) {
+  --sl-color-bg-inline-code: oklch(0.24 0.07 197 / 0.45);
+}
+
+/* ── Splash hero redesign ──────────────────────────────────────────────
+   Aligns the landing page with the frontend's visual language:
+   cyan-to-violet gradient text, subtle radial glow, glassmorphism CTA.
+   ─────────────────────────────────────────────────────────────────── */
+
+/* Gradient headline — echoes the frontend's blue-to-purple heading */
+.hero h1 {
+  background: linear-gradient(135deg, #22d3ee 15%, #a78bfa 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+
+/* Primary CTA — glassmorphism with cyan-to-violet gradient border.
+   Uses the background/padding-box + border-box trick for clean gradient borders. */
+.hero .sl-link-button.primary {
+  background:
+    linear-gradient(oklch(0.24 0.07 197 / 0.30), oklch(0.24 0.07 197 / 0.30)) padding-box,
+    linear-gradient(135deg, #22d3ee, #a78bfa) border-box;
+  border: 1px solid transparent;
+  color: oklch(0.92 0.06 197);
+  box-shadow: 0 0 24px -8px oklch(0.81 0.14 197 / 0.4);
+  transition: background 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.hero .sl-link-button.primary:hover {
+  background:
+    linear-gradient(oklch(0.28 0.09 197 / 0.40), oklch(0.28 0.09 197 / 0.40)) padding-box,
+    linear-gradient(135deg, #22d3ee, #a78bfa) border-box;
+  color: oklch(0.97 0.03 197);
+  box-shadow: 0 0 32px -6px oklch(0.81 0.14 197 / 0.55);
+}
+
+/* Secondary CTA — cyan text, subtle border */
+.hero .sl-link-button.secondary {
+  border-color: oklch(0.81 0.14 197 / 0.35);
+  color: oklch(0.85 0.10 197);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.hero .sl-link-button.secondary:hover {
+  border-color: oklch(0.81 0.14 197 / 0.7);
+  color: oklch(0.92 0.06 197);
+}
+
+/* Light mode: keep buttons readable */
+:root[data-theme='light'] .hero .sl-link-button.primary {
+  background:
+    linear-gradient(oklch(0.88 0.07 197 / 0.30), oklch(0.88 0.07 197 / 0.30)) padding-box,
+    linear-gradient(135deg, oklch(0.58 0.14 197), #a78bfa) border-box;
+  color: oklch(0.25 0.10 197);
+  box-shadow: 0 0 20px -6px oklch(0.58 0.14 197 / 0.3);
+}
+
+:root[data-theme='light'] .hero .sl-link-button.primary:hover {
+  color: oklch(0.18 0.10 197);
+}
+
+:root[data-theme='light'] .hero .sl-link-button.secondary {
+  border-color: oklch(0.58 0.14 197 / 0.4);
+  color: oklch(0.40 0.12 197);
+}

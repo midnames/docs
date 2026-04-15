@@ -11,6 +11,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Midnight Domains",
+      customCss: ["./src/styles/custom.css"],
       components: {
         Pagination: "./src/components/CustomPagination.astro",
       },
@@ -31,11 +32,15 @@ export default defineConfig({
           label: "SDK Reference",
           autogenerate: { directory: "reference" },
         },
+        {
+          label: "Preprod",
+          autogenerate: { directory: "preprod" },
+        },
       ],
       plugins: [
         catppuccin({
-          dark: { flavor: "mocha", accent: "green" },
-          light: { flavor: "latte", accent: "green" },
+          dark: { flavor: "mocha", accent: "teal" },
+          light: { flavor: "latte", accent: "teal" },
         }),
         starlightLinksValidator(),
         starlightHeadingBadges(),
